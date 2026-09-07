@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Refunds</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'refunds:create' %}">{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}</a>
+    </div>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr><th>Refund</th><th>Customer</th><th>Payment</th><th>Amount</th><th>Reason</th><th>Requested</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for r in refunds %}
+            <tr>
+                <td><a class="mono" href="{% url 'refunds:detail' r.id %}">{{ r.number }}</a></td>
+                <td>{{ r.customer }}</td>
+                <td>{{ r.payment }}</td>
+                <td><strong>{{ r.amount|money }}</strong></td>
+                <td>{{ r.reason }}</td>
+                <td>{{ r.requested }}</td>
+                <td>{% include "components/status_badge.html" with status=r.status %}</td>
+                <td class="row-actions">
+                    {% url 'refunds:detail' r.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                </td>
+            </tr>
+        {% empty %}
+            {% url 'refunds:create' as refund_create_url %}
+            <tr><td colspan="8">{% if nav.is_owner %}{% include "components/empty_state.html" with title="No refunds" body="Issue a refund from a completed payment. It posts immediately — no approval step." cta="Issue refund" cta_url=refund_create_url %}{% else %}{% include "components/empty_state.html" with title="No refunds" body="Request a refund from a completed payment, then approve and mark it completed." cta="Request refund" cta_url=refund_create_url %}{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'suppliers:list' %}">Suppliers</a>
+        <a class="btn btn-ghost" href="{% url 'packages:create' %}">New package</a>
+    </div>
+</div>
+
+<section class="form-card form-card-accent" style="margin-bottom:1rem">
+    <header class="form-card-h">
+        <span class="form-step">+</span>
+        <div>
+            <h2>Add a service</h2>
+        </div>
+    </header>
+    <div class="ops-form-foot" style="position:static;box-shadow:none;padding:0;background:transparent;border:0">
+        <a class="btn btn-warm" href="{% url 'suppliers:service_new' %}">Add service for existing supplier</a>
+        {% if nav.ops %}<a class="btn btn-ghost" href="{% url 'suppliers:create' %}">New supplier</a>{% endif %}
+    </div>
+</section>
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Supplier</th>
+                <th>Type</th>
+                <th>Estimate</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in catalog %}
+            <tr>
+                <td>
+                    <strong>{{ s.name }}</strong>
+                    <div class="muted">{{ s.number }}</div>
+                </td>
+                <td><a href="{% url 'suppliers:detail' s.supplier_id %}?tab=services">{{ s.supplier }}</a></td>
+                <td>{{ s.kind_label }}</td>
+                <td>{{ s.estimated_cost|money }}<div class="muted">{{ s.basis_label }}</div></td>
+                <td>{% include "components/status_badge.html" with status=s.status %}</td>
+                <td class="row-actions">
+                    <a class="ico-btn" href="{% url 'suppliers:detail' s.supplier_id %}?tab=services" title="View" aria-label="View">
+                        {% include "components/ico_mark.html" with icon="view" %}
+                    </a>
+                    {% url 'suppliers:service_edit' s.supplier_id s.id as service_edit_url %}
+                    {% include "components/ico_btn.html" with href=service_edit_url title="Edit" icon="edit" %}
+                    {% url 'suppliers:service_create' s.supplier_id as add_service_url %}
+                    {% include "components/ico_btn.html" with href=add_service_url title="Add another" icon="plus" %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">
+                    <p class="muted" style="margin:.9rem">No services in the catalog yet. <a href="{% url 'suppliers:service_new' %}">Add a service for an existing supplier</a>.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

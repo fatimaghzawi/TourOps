@@ -1,0 +1,77 @@
+{% load tourops %}
+<header class="navbar topbar">
+    <button type="button" class="nav-toggle" data-sidebar-toggle aria-label="Toggle menu">☰</button>
+
+    <div class="navbar-title">
+        {% if crumbs %}
+        <div class="crumbs">
+            {% for crumb in crumbs %}
+                {% if crumb.url %}<a href="{{ crumb.url }}">{{ crumb.label }}</a>{% else %}<span>{{ crumb.label }}</span>{% endif %}
+                {% if not forloop.last %} / {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if page_heading %}<strong>{{ page_heading }}</strong>{% endif %}
+    </div>
+
+    <div class="navbar-actions">
+        <details class="nav-drop">
+            <summary class="icon-btn" data-notes-toggle aria-label="Notifications" title="Notifications">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 16V10a6 6 0 1 1 12 0v6l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+                {% if unread_count %}
+                <span class="note-count" aria-label="{{ unread_count }} unread">{{ unread_count }}</span>
+                {% endif %}
+            </summary>
+            <div class="flyout notes-menu" data-notes-menu>
+                <div class="flyout-head">
+                    <strong>Notifications</strong>
+                    {% if unread_count %}<span>{{ unread_count }} unread</span>{% else %}<span>You're up to date</span>{% endif %}
+                </div>
+                {% if nav_notifications %}
+                    {% for n in nav_notifications %}
+                    <a class="notes-item {% if n.unread %}is-unread{% endif %}" href="{% url 'notifications:open' n.id %}">
+                        <span class="notes-item-dot" aria-hidden="true"></span>
+                        <span>
+                            <strong>{{ n.title }}</strong>
+                            <small>{{ n.body }}</small>
+                        </span>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="notes-empty">No notifications yet.</p>
+                {% endif %}
+                <a class="flyout-foot" href="{% url 'notifications:list' %}">View all notifications</a>
+            </div>
+        </details>
+
+        {% if current_user %}
+        <details class="nav-drop">
+            <summary class="profile-btn" data-profile-toggle>
+                <span class="avatar">{{ current_user_initial }}</span>
+                <span class="profile-meta">
+                    <strong>{{ current_user_name }}</strong>
+                    <small>{{ current_role|labelize }}</small>
+                </span>
+                <svg class="profile-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="flyout profile-menu" data-profile-menu>
+                <div class="profile-menu-head">
+                    <span class="avatar">{{ current_user_initial }}</span>
+                    <div>
+                        <strong>{{ current_user_name }}</strong>
+                        <small>{% if current_user.email %}{{ current_user.email }}{% else %}{{ current_role|labelize }}{% endif %}</small>
+                    </div>
+                </div>
+                <a href="{% url 'accounts:password' %}">Change password</a>
+                {% if nav.system %}
+                <a href="{% url 'accounts:settings' %}">Settings</a>
+                {% endif %}
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Log out</button>
+                </form>
+            </div>
+        </details>
+        {% endif %}
+    </div>
+</header>

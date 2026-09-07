@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Payment ledger</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'payments:create' %}">Record payment</a>
+    </div>
+</div>
+<div class="metrics-4">
+    <div class="metric"><span class="tiny">Payments today</span><b>{{ metrics.today|money }}</b></div>
+    <div class="metric"><span class="tiny">This month</span><b>{{ metrics.month|money }}</b></div>
+    <div class="metric"><span class="tiny">Cash</span><b>{{ metrics.cash|money }}</b></div>
+    <div class="metric"><span class="tiny">Bank / card</span><b>{{ metrics.bank|money }}</b></div>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr><th>Payment</th><th>Invoice</th><th>Customer</th><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for p in payments %}
+            <tr>
+                <td><a class="mono" href="{% url 'payments:detail' p.id %}">{{ p.number }}</a></td>
+                <td>{% if p.invoice_id %}<a href="{% url 'invoices:detail' p.invoice_id %}">{{ p.invoice }}</a>{% else %}{{ p.invoice }}{% endif %}</td>
+                <td>{{ p.customer }}</td>
+                <td>{{ p.date }}</td>
+                <td><strong>{{ p.amount|money }}</strong></td>
+                <td>{{ p.method|labelize }}</td>
+                <td class="mono">{{ p.ref }}</td>
+                <td>{% include "components/status_badge.html" with status=p.status %}</td>
+                <td class="row-actions">
+                    {% url 'payments:detail' p.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% if p.status == 'COMPLETED' %}
+                    <a class="ico-btn is-primary" href="{% url 'refunds:create' %}?payment_id={{ p.id }}" title="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}" aria-label="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}">
+                        {% include "components/ico_mark.html" with icon="refund" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="9">{% include "components/empty_state.html" with title="No payments yet" body="Record a customer payment against an issued invoice." %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

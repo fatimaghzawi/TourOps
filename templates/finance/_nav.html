@@ -1,0 +1,44 @@
+{% load tourops %}
+<div class="view-switch finance-switch">
+    <a class="{% if finance_tab == 'customers' %}is-on{% endif %}" href="{% url 'finance:customer_balances' %}{{ query }}">Customer balances</a>
+    <a class="{% if finance_tab == 'suppliers' %}is-on{% endif %}" href="{% url 'finance:supplier_balances' %}{{ query }}">Supplier balances</a>
+    <a class="{% if finance_tab == 'receivables' %}is-on{% endif %}" href="{% url 'finance:receivables' %}{{ query }}">Receivables</a>
+    <a class="{% if finance_tab == 'payables' %}is-on{% endif %}" href="{% url 'finance:payables' %}{{ query }}">Payables</a>
+</div>
+<form class="filter-bar" method="get" data-autosubmit>
+    <label>Month
+        <input class="field" type="month" name="month" value="{{ filters.month }}">
+    </label>
+    <label>From
+        <input class="field" type="date" name="from" value="{{ filters.from }}">
+    </label>
+    <label>To
+        <input class="field" type="date" name="to" value="{{ filters.to }}">
+    </label>
+    <div class="filter-actions">
+        {% if filters.month or filters.from or filters.to %}
+        <a class="btn btn-ghost" href="?">Clear</a>
+        {% endif %}
+    </div>
+</form>
+{% if report %}
+<div class="stat-row">
+    {% if finance_tab == 'payables' or finance_tab == 'suppliers' %}
+    <article class="stat-tile stat-money tone-amber">
+        <div class="stat-copy">
+            <span class="tiny">Total AP</span>
+            <b>{{ report.total|money }}</b>
+            <small>{{ report.count }} open · still owed to suppliers</small>
+        </div>
+    </article>
+    {% else %}
+    <article class="stat-tile stat-money tone-blue">
+        <div class="stat-copy">
+            <span class="tiny">Total AR</span>
+            <b>{{ report.total|money }}</b>
+            <small>{{ report.count }} open · still owed by customers</small>
+        </div>
+    </article>
+    {% endif %}
+</div>
+{% endif %}

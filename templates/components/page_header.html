@@ -1,0 +1,9 @@
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+    <div class="actions">
+        {% block header_actions %}{% endblock %}
+        {{ actions_html|safe }}
+    </div>
+</div>

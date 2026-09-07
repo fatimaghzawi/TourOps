@@ -1,0 +1,79 @@
+{% load static %}
+<div class="flex items-center gap-3 select-none">
+  <!-- Circular Vector Emblem -->
+  <div class="relative w-11 h-11 shrink-0 flex items-center justify-center">
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="navySky" cx="40%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#0B1E38" />
+          <stop offset="70%" stop-color="#061224" />
+          <stop offset="100%" stop-color="#030914" />
+        </radialGradient>
+        <linearGradient id="mountGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#60A5FA" />
+          <stop offset="40%" stop-color="#3B82F6" />
+          <stop offset="100%" stop-color="#1D4ED8" />
+        </linearGradient>
+        <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00E5FF" />
+          <stop offset="50%" stop-color="#00B4D8" />
+          <stop offset="100%" stop-color="#0077B6" />
+        </linearGradient>
+        <linearGradient id="tealEmerald" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stop-color="#00C9A7" />
+          <stop offset="100%" stop-color="#48BB78" />
+        </linearGradient>
+      </defs>
+
+      <!-- 1. Navy Circular Badge -->
+      <circle cx="50" cy="50" r="45" fill="url(#navySky)" />
+
+      <!-- 2. Mountains with Snow Peaks -->
+      <path d="M14 68 L36 34 L56 64 L68 46 L86 70 Z" fill="url(#mountGrad)" />
+      <path d="M36 34 L42 45 L37 49 L33 46 L29 49 Z" fill="#FFFFFF" opacity="0.95" />
+      <path d="M68 46 L73 54 L69 57 L65 55 Z" fill="#FFFFFF" opacity="0.95" />
+
+      <!-- 3. Island & Palm Tree -->
+      <path d="M12 70 Q24 66 36 71 Q24 75 12 70 Z" fill="#005B96" />
+      <path d="M22 69 Q24 59 27 52" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+      <path d="M27 52 Q20 48 15 52" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M27 52 Q33 48 38 52" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M27 52 Q23 44 26 39" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M27 52 Q30 44 32 40" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" />
+
+      <!-- 4. Ocean Waves -->
+      <path d="M10 70 Q30 64 50 70 Q70 76 90 70 L90 82 Q50 93 10 82 Z" fill="url(#oceanGrad)" />
+      <path d="M14 76 Q32 72 50 76 Q68 80 86 76" stroke="#E0F2FE" stroke-width="1" stroke-linecap="round" opacity="0.8" />
+
+      <!-- 5. Finance Growth Bars -->
+      <rect x="58" y="52" width="4.5" height="18" rx="1.5" fill="url(#tealEmerald)" />
+      <rect x="65" y="44" width="4.5" height="26" rx="1.5" fill="url(#tealEmerald)" />
+      <rect x="72" y="34" width="4.5" height="36" rx="1.5" fill="url(#tealEmerald)" />
+
+      <!-- 6. Pen Nib -->
+      <path d="M46 88 C46 88 62 88 77 71 C67 63 55 67 46 88 Z" fill="url(#tealEmerald)" />
+      <circle cx="67" cy="74" r="1.5" fill="#061224" />
+
+      <!-- 7. Flight Arc Trail & Plane -->
+      <path d="M48 95 C30 93 16 80 12 64 C8 46 16 26 32 14 C48 2 70 4 84 17" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" />
+      <path d="M46 88 C40 76 46 62 54 50 L68 32" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" />
+      <g transform="translate(64, 25) rotate(42) scale(0.72)">
+        <path d="M12 0 L15 8 L25 11 L15 14 L14 21 L10 17 L6 18 L8 14 L0 11 L8 8 L6 1 L10 2 Z" fill="#FFFFFF" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Divider -->
+  <div class="h-8 w-[1px] bg-slate-600/70 shrink-0"></div>
+
+  <!-- Wordmark -->
+  <div class="flex flex-col justify-center min-w-0">
+    <div class="flex items-baseline leading-none tracking-tight">
+      <span class="text-2xl font-bold text-white tracking-tight">Tour</span>
+      <span class="text-2xl font-extrabold text-[#00C9A7] tracking-tight ml-0.5">Ops</span>
+    </div>
+    <p class="text-[7.5px] tracking-[0.15em] uppercase font-bold text-slate-300 mt-1 whitespace-nowrap leading-none font-sans">
+      TRAVEL AGENCY OPERATIONS & FINANCE
+    </p>
+  </div>
+</div>

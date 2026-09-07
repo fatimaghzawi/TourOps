@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="bazaar dash">
+    <div class="dash-hero">
+        <section class="dash-hero-main">
+            <div class="dash-kicker">
+                <span>{{ today_label }}</span>
+            </div>
+            <h1>{{ greeting }}, {{ greeting_name }}</h1>
+            {% if dash %}
+            <div class="dash-figure {% if dash.summary.net < 0 %}is-down{% endif %}">
+                <div>
+                    <span class="tiny" style="color:#E8C37A">Net cash</span>
+                    <strong>{{ dash.summary.net|money }}</strong>
+                </div>
+                <div class="dash-pills">
+                    <span class="dash-pill">In <b>{{ dash.summary.money_in|money }}</b></span>
+                    <span class="dash-pill">Out <b>{{ dash.summary.money_out|money }}</b></span>
+                    <span class="dash-pill">{{ dash.overdue_invoices|length }} overdue invoices</span>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        <aside class="dash-hero-side">
+            <form class="dash-tile dash-month" method="get" data-autosubmit>
+                <label class="tiny" style="flex:1">Month
+                    <input class="field" type="month" name="month" value="{{ filters.month }}">
+                </label>
+            </form>
+            {% if dash %}
+            <a class="dash-tile clay" href="{% url 'finance:receivables' %}" style="color:inherit">
+                <span class="tiny">Receivables</span>
+                <b>{{ dash.summary.receivables.total|money }}</b>
+            </a>
+            <a class="dash-tile sea" href="{% url 'finance:payables' %}" style="color:inherit">
+                <span class="tiny">Payables</span>
+                <b>{{ dash.summary.payables.total|money }}</b>
+            </a>
+            {% endif %}
+        </aside>
+    </div>
+
+    {% if dash %}
+    {% include "dashboard/_flow.html" %}
+
+    <div class="bazaar-tiles">
+        <article class="bazaar-tile">
+            <span class="mark clay">IN</span>
+            <div>
+                <span class="tiny">Money in</span>
+                <b>{{ dash.summary.money_in|money }}</b>
+                <small>Customer payments</small>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark">OUT</span>
+            <div>
+                <span class="tiny">Money out</span>
+                <b>{{ dash.summary.money_out|money }}</b>
+                <small>Cash leaving</small>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark sea">AR</span>
+            <div>
+                <span class="tiny">Receivables</span>
+                <b>{{ dash.summary.receivables.total|money }}</b>
+                <small>{{ dash.open_invoices|length }} on this page</small>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark gold">AP</span>
+            <div>
+                <span class="tiny">Payables</span>
+                <b>{{ dash.summary.payables.total|money }}</b>
+                <small>{{ dash.open_expenses|length }} open bills</small>
+            </div>
+        </article>
+    </div>
+
+    <div class="dash-grid">
+        {% include "dashboard/_attention.html" %}
+        <div class="stack">
+            <section class="dash-card bazaar-arch">
+                <div class="panel-h">
+                    <h2>Collect</h2>
+                    <a class="tiny" href="{% url 'finance:receivables' %}">View all</a>
+                </div>
+                <div class="dash-queue">
+                    {% for inv in dash.open_invoices %}
+                    <a href="{% url 'invoices:detail' inv.id %}">
+                        <span><span class="mono">{{ inv.number }}</span> · {{ inv.customer }}</span>
+                        <strong>{{ inv.remaining|money }}</strong>
+                    </a>
+                    {% empty %}
+                    <p class="muted">No open customer balances.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            <section class="dash-card">
+                <div class="panel-h">
+                    <h2>Pay</h2>
+                    <a class="tiny" href="{% url 'finance:payables' %}">View all</a>
+                </div>
+                <div class="dash-queue">
+                    {% for e in dash.open_expenses %}
+                    <a href="{% url 'expenses:detail' e.id %}">
+                        <span><span class="mono">{{ e.number }}</span> · {{ e.supplier }}</span>
+                        <strong>{{ e.remaining|money }}</strong>
+                    </a>
+                    {% empty %}
+                    <p class="muted">No open supplier balances.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            <section class="dash-card">
+                <div class="panel-h"><h2>Quick links</h2></div>
+                <div class="dash-jumps">
+                    <a class="btn btn-warm" href="{% url 'finance:receivables' %}">Business finance</a>
+                    <a class="btn btn-ghost" href="{% url 'expenses:create' %}">New expense</a>
+                    <a class="btn btn-ghost" href="{% url 'supplier_payments:create' %}">Pay supplier</a>
+                    <a class="btn btn-ghost" href="{% url 'reports:list' %}">Reports</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    {% include "dashboard/_ledger.html" %}
+    {% else %}
+    {% include "components/empty_state.html" with title="Dashboard unavailable" body="Start MongoDB and refresh to load live finance KPIs." %}
+    {% endif %}
+</div>
+{% endblock %}

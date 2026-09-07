@@ -1,0 +1,133 @@
+{% extends "base_invoices.html" %}
+{% load tourops %}
+{% block content %}
+<div class="det-head" style="margin-bottom:1.2rem">
+    <h1>Invoice {{ record.number }}</h1>
+</div>
+
+<div class="sheet">
+    <div class="sheet-top">
+        <div class="sheet-brand">{{ brand.name }}</div>
+        <div class="sheet-contact">
+            {% if brand.address %}{{ brand.address|linebreaksbr }}{% endif %}
+            {% if brand.phone %}{% if brand.address %}<br>{% endif %}{{ brand.phone }}{% endif %}
+            {% if brand.email %}{% if brand.address or brand.phone %}<br>{% endif %}{{ brand.email }}{% endif %}
+        </div>
+    </div>
+    <div class="sheet-body">
+        <div class="inv-word">INVOICE</div>
+        <div class="meta-grid">
+            <dl class="kv">
+                <dt>Invoice Number</dt><dd>{{ record.number }}</dd>
+                <dt>Booking Reference</dt>
+                <dd>
+                    {% if record.booking_id %}
+                    <a href="{% url 'bookings:detail' record.booking_id %}">{{ record.booking }}</a>
+                    {% else %}
+                    {{ record.booking }}
+                    {% endif %}
+                </dd>
+                <dt>Issue Date</dt><dd>{{ record.issue }}</dd>
+                <dt>Due Date</dt><dd>{{ record.due }}</dd>
+                <dt>Status</dt><dd><span class="pill {{ record.status|lower }}">{{ record.status }}</span></dd>
+            </dl>
+            <div class="billto">
+                <div class="lab">Bill To</div>
+                <div class="name">
+                    {% if record.customer_id %}
+                    <a href="{% url 'customers:detail' record.customer_id %}">{{ record.customer }}</a>
+                    {% else %}
+                    {{ record.customer }}
+                    {% endif %}
+                </div>
+                {% if record.customer_email %}<div class="sub">{{ record.customer_email }}</div>{% endif %}
+            </div>
+        </div>
+
+        <table class="li">
+            <thead><tr><th>#</th><th>Description</th><th class="r">Qty</th><th class="r">Unit Price</th><th class="r">Amount</th></tr></thead>
+            <tbody>
+                {% for li in record.items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ li.description }}</strong></td>
+                    <td class="r">{{ li.quantity }}</td>
+                    <td class="r">{{ li.unit_price|money }}</td>
+                    <td class="r">{{ li.total|money }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="color:#94a3b8">No line items.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="tot">
+            <div class="row"><span>Subtotal</span><span>{{ record.subtotal|money }}</span></div>
+            <div class="row disc"><span>Discount</span><span>-{{ record.discount_amount|money }}</span></div>
+            <div class="row"><span>Tax ({{ record.tax_rate }}%)</span><span>{{ record.tax_amount|money }}</span></div>
+            <div class="grand" style="display:flex;justify-content:space-between"><span>Total</span><span>{{ record.total|money }}</span></div>
+            <div class="row" style="margin-top:.6rem"><span>Paid</span><span>{{ record.paid|money }}</span></div>
+            <div class="remain"><span>Remaining Balance</span><span>{{ record.remaining|money }}</span></div>
+        </div>
+
+        <div class="sheet-foot">
+            <div class="foot-actions">
+                <span class="foot-lab">Actions</span>
+                <a class="btn-out" href="{% url 'invoices:print' record.id %}">Print</a>
+                {% if record.can_cancel %}
+                <form method="post" action="{% url 'invoices:cancel' record.id %}" data-confirm="This invoice is closed for good. Payments already on it stay on the ledger." data-confirm-title="Void this paper trail?" data-confirm-ok="Cancel invoice" style="display:inline">
+                    {% csrf_token %}
+                    <button class="btn-out cancel-btn" type="submit">Cancel invoice</button>
+                </form>
+                {% endif %}
+                {% if record.can_reissue %}
+                <a class="btn-out" href="{% url 'invoices:reissue' record.id %}">Reissue</a>
+                {% endif %}
+            </div>
+            <div class="thanks">Thank you for choosing TourOps.<br><span>We appreciate your business.</span></div>
+        </div>
+    </div>
+</div>
+
+{% if record.can_pay %}
+<section class="panel" style="max-width:560px;margin-top:1.2rem">
+    <h2>Record payment</h2>
+    <form method="post" action="{% url 'invoices:pay' record.id %}">
+        {% csrf_token %}
+        {% include "components/form_field.html" with field=pay_form.amount %}
+        {% include "components/form_field.html" with field=pay_form.method %}
+        {% include "components/form_field.html" with field=pay_form.reference_number %}
+        <p class="muted">After this payment: <strong data-pay-after>{{ record.remaining|money }}</strong></p>
+        <p class="err-inline" data-pay-error>Amount cannot exceed the remaining balance.</p>
+        <button class="btn btn-warm" type="submit">Save payment</button>
+    </form>
+</section>
+{% endif %}
+
+{% if payments %}
+<section class="panel" style="padding:0;margin-top:1rem">
+    <div class="panel-h" style="padding:1rem 1rem 0"><h2>Payments</h2></div>
+    <table class="data">
+        <thead><tr><th>Payment</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for p in payments %}
+            <tr>
+                <td class="mono"><a href="{% url 'payments:detail' p.id %}">{{ p.payment_number }}</a></td>
+                <td><strong>{{ p.amount|money }}</strong></td>
+                <td>{{ p.payment_method }}</td>
+                <td class="mono">{{ p.reference_number|default:"—" }}</td>
+                <td>{% include "components/status_badge.html" with status=p.status %}</td>
+                <td class="row-actions">
+                    {% if p.status == 'COMPLETED' %}
+                    <a class="ico-btn is-primary" href="{% url 'refunds:create' %}?payment_id={{ p.id }}" title="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}" aria-label="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}">
+                        {% include "components/ico_mark.html" with icon="refund" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+{% endblock %}

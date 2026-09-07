@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="bazaar dash">
+    <header class="bazaar-mast">
+        <div>
+            <p class="tiny">{{ today_label }}</p>
+            <h1>{{ greeting }}, {{ greeting_name }}</h1>
+        </div>
+        <div class="actions">
+            {% if nav.ops %}<a class="btn btn-warm" href="{% url 'bookings:create' %}">New booking</a>{% endif %}
+            <a class="btn btn-ghost" href="{% url 'tours:list' %}">Open tours</a>
+        </div>
+    </header>
+
+    <div class="bazaar-ribbon">
+        <span>Active bookings <b>{{ m.kpis.active_bookings }}</b></span>
+        <span>Upcoming <b>{{ m.kpis.upcoming }}</b></span>
+        <span>Pipeline pending <b>{{ m.pipeline.pending }}</b></span>
+        {% if nav.finance %}<span>Outstanding AR <b>{{ m.kpis.ar|money }}</b></span>{% endif %}
+    </div>
+
+    <div class="bazaar-tiles">
+        <article class="bazaar-tile">
+            <span class="mark">BK</span>
+            <div>
+                <span class="tiny">Bookings live</span>
+                <b>{{ m.kpis.active_bookings }}</b>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark sea">TR</span>
+            <div>
+                <span class="tiny">Departures</span>
+                <b>{{ m.kpis.upcoming }}</b>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark gold">$</span>
+            <div>
+                <span class="tiny">Booked revenue</span>
+                <b>{{ m.kpis.revenue|money }}</b>
+            </div>
+        </article>
+        <article class="bazaar-tile">
+            <span class="mark clay">AR</span>
+            <div>
+                <span class="tiny">Still owed</span>
+                <b>{{ m.kpis.ar|money }}</b>
+            </div>
+        </article>
+    </div>
+
+    {% with flow=m.money_in|add_money:m.money_out %}
+    {% if nav.finance %}
+    <div class="dash-flow">
+        <div class="dash-lane in">
+            <span class="tiny">Money in</span>
+            <div class="amount">{{ m.money_in|money }}</div>
+            <div class="dash-meter"><i style="width:{{ m.money_in|width_pct:flow }}%"></i></div>
+        </div>
+        <div class="dash-vs">CASH</div>
+        <div class="dash-lane out">
+            <span class="tiny">Money out</span>
+            <div class="amount">{{ m.money_out|money }}</div>
+            <div class="dash-meter"><i style="width:{{ m.money_out|width_pct:flow }}%"></i></div>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="dash-grid">
+        <section class="dash-card bazaar-arch">
+            <div class="panel-h">
+                <h2>Needs a stamp today</h2>
+            </div>
+            {% if nav.finance %}
+            <a class="dash-ticket passport" href="{% url 'invoices:list' %}">
+                <span class="dash-stamp">AR</span>
+                <div><strong>5 overdue invoices</strong><em>Oldest INV-1042 · Fatima Ghazzawi</em></div>
+                <b>$420</b>
+            </a>
+            <a class="dash-ticket passport" href="{% url 'refunds:list' %}">
+                <span class="dash-stamp ap">REF</span>
+                <div><strong>3 refunds waiting</strong><em>REF-1012 · Ali Mansour</em></div>
+                <b>$300</b>
+            </a>
+            {% endif %}
+            {% if nav.ops %}
+            <a class="dash-ticket passport" href="{% url 'tours:list' %}">
+                <span class="dash-stamp" style="background:var(--terracotta-soft);color:#9a3412">SEAT</span>
+                <div><strong>2 tours near capacity</strong><em>Cairo Discovery 18/25 · Istanbul full</em></div>
+                <span class="badge b-warm">Full</span>
+            </a>
+            {% endif %}
+            {% if nav.finance %}
+            <a class="dash-ticket passport" href="{% url 'supplier_payments:list' %}">
+                <span class="dash-stamp ap">AP</span>
+                <div><strong>4 supplier payments due</strong><em>Beirut Transport Co. · EXP-1033</em></div>
+                <b>$180</b>
+            </a>
+            {% endif %}
+        </section>
+
+        <div class="stack">
+            <section class="dash-card">
+                <div class="panel-h">
+                    <h2>Upcoming caravan</h2>
+                    <a class="tiny" href="{% url 'tours:list' %}">All tours</a>
+                </div>
+                <div class="tour-meter">
+                    {% for tour in m.tours %}
+                    <a href="{% if nav.ops %}{% url 'tours:detail' tour.id %}{% else %}{% url 'reports:profitability' %}?tour={{ tour.id }}{% endif %}">
+                        <div class="row">
+                            <strong>{{ tour.city }} · {{ tour.name }}</strong>
+                            <span class="mono">{{ tour.booked }}/{{ tour.capacity }}</span>
+                        </div>
+                        <div class="track {% if tour.pct >= 90 %}low{% endif %}"><i style="width:{{ tour.pct }}%"></i></div>
+                        <p class="muted" style="font-size:.78rem">{{ tour.start }} · {{ tour.projected|money }} projected</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+            <section class="dash-card">
+                <div class="panel-h"><h2>Booking stalls</h2></div>
+                <div class="pipeline">
+                    <div class="pipe"><span class="tiny">Pending</span><b>{{ m.pipeline.pending }}</b></div>
+                    <div class="pipe"><span class="tiny">Confirmed</span><b>{{ m.pipeline.confirmed }}</b></div>
+                    <div class="pipe"><span class="tiny">In progress</span><b>{{ m.pipeline.progress }}</b></div>
+                    <div class="pipe"><span class="tiny">Completed</span><b>{{ m.pipeline.completed }}</b></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <section class="dash-card is-flush">
+        <div class="panel-h">
+            <h2>Desk chatter</h2>
+            {% if nav.system %}<a class="tiny" href="{% url 'audit:list' %}">Audit log</a>{% endif %}
+        </div>
+        <div class="dash-moves">
+            {% for item in m.activity %}
+            <div class="dash-move">
+                <i></i>
+                <div>
+                    <strong>{{ item.who }}</strong>
+                    <small>{{ item.text }}</small>
+                </div>
+                <span class="muted" style="font-size:.78rem;white-space:nowrap">{{ item.time }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

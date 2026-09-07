@@ -1,0 +1,9 @@
+{% load tourops %}
+<div class="kpi" style="--accent: {{ accent|default:'#b45309' }}">
+    <div class="label">{{ label }}</div>
+    <div class="value">{{ value }}</div>
+    {% if delta %}
+        <div class="delta {% if up %}up{% else %}down{% endif %}">{% if up %}▲{% else %}▼{% endif %} {{ delta }}%</div>
+    {% endif %}
+    {% if spark %}<div class="spark"></div>{% endif %}
+</div>

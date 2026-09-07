@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Cash flow</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'reports:list' %}{{ query }}">All reports</a>
+</div>
+{% include "reports/_filters.html" %}
+{% if report %}
+<div class="money-split">
+    <div class="money-in">
+        <span class="tiny">In</span>
+        <div style="font-size:1.6rem;font-weight:750">{{ report.money_in|money }}</div>
+    </div>
+    <div class="money-out">
+        <span class="tiny">Out</span>
+        <div style="font-size:1.6rem;font-weight:750">{{ report.money_out|money }}</div>
+        {% if report.refunds %}<p class="muted">+ refunds {{ report.refunds|money }}</p>{% endif %}
+    </div>
+</div>
+<p style="margin-top:1rem;font-size:1.2rem;font-weight:750">Net {{ report.net|money }}</p>
+{% else %}
+{% include "components/empty_state.html" with title="No cash flow yet" body="Record customer payments and supplier payouts to build this view." %}
+{% endif %}
+{% endblock %}

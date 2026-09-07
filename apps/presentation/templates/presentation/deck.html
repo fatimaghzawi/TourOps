@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Istanbul Escape</title>
+    <style>
+        body { margin: 0; background: #f4f1ea; color: #1b2430; font-family: "Segoe UI", Arial, sans-serif; line-height: 1.45; }
+        a { color: #1b2430; text-decoration: none; }
+        .bar { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #d7d0c4; padding: 12px 18px; z-index: 5; }
+        .dots { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+        .dot { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #5c6b78; }
+        .mark { width: 10px; height: 10px; border-radius: 50%; background: #0f9f6e; display: inline-block; }
+        .dot:hover .mark, .dot:hover { color: #0f9f6e; }
+        .dot:hover .mark { background: #0f9f6e; }
+        .wrap { max-width: 820px; margin: 0 auto; padding: 20px 16px 64px; }
+        .hero { background: #fff; border: 1px solid #d7d0c4; padding: 22px 22px 18px; margin-bottom: 18px; }
+        .hero h1 { font-family: Georgia, serif; font-size: 32px; margin: 0 0 10px; }
+        .muted { color: #5c6b78; }
+        .warn { background: #fff4f0; border: 1px solid #e8b4a4; padding: 14px 16px; }
+        .card { background: #fff; border: 1px solid #d7d0c4; padding: 22px; margin: 0 0 18px; }
+        .num { color: #0f9f6e; font-weight: 800; letter-spacing: .12em; font-size: 12px; text-transform: uppercase; }
+        .card h2 { font-family: Georgia, serif; font-size: 26px; margin: 8px 0 10px; }
+        .edge { margin-top: 16px; background: #f6e7c1; border-left: 6px solid #d4a017; padding: 14px 16px; }
+        .edge b { display: block; color: #8a6914; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px; }
+        .edge h3 { font-family: Georgia, serif; margin: 0 0 8px; font-size: 20px; }
+        .edge p { margin: 0; color: #4a3b16; }
+    </style>
+</head>
+<body>
+    <div class="bar">
+        <div class="dots">
+            {% for step in steps %}
+            <a class="dot" href="#{{ step.anchor }}"><span class="mark"></span>{{ step.label }}</a>
+            {% endfor %}
+            <span class="muted" style="margin-left:auto;font-size:13px">
+                {% if snapshot.capacity %}{{ snapshot.booked }}/{{ snapshot.capacity }} seats{% endif %}
+                · {{ total }} beats
+            </span>
+        </div>
+    </div>
+
+    <div class="wrap">
+        <div class="hero">
+            <div class="num">Presentation · outside TourOps</div>
+            <h1>Watch one tour come to life</h1>
+            <p class="muted">Istanbul Escape · 15–20 September · 30 travelers. Scroll the story. Green dots jump to a stage. Each card ends on the edge case TourOps refuses to break.</p>
+        </div>
+
+        {% if error %}
+        <div class="warn">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        {% for card in cards %}
+        <article class="card" id="{{ card.id }}">
+            <div class="num">{{ card.number }} / {{ total }} · {{ card.kicker }}</div>
+            <h2>{{ card.title }}</h2>
+            <p>{{ card.lede }}</p>
+            <div class="edge">
+                <b>Edge case</b>
+                <h3>{{ card.edge.title }}</h3>
+                <p>{{ card.edge.body }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</body>
+</html>

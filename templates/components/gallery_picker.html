@@ -1,0 +1,6 @@
+<label class="form-field gallery-picker" data-gallery-picker data-gallery-max="{{ gallery_room|default:8 }}">
+    <span class="form-label">{% if picker_label %}{{ picker_label }}{% else %}Add photos{% endif %}</span>
+    <input class="field" type="file" name="gallery" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+    <p class="muted tiny" style="margin:.35rem 0 0">Select several at once, or pick again to add more. Up to {{ gallery_room|default:8 }} photos, 5 MB each.</p>
+    <ul class="gallery-pending" data-gallery-pending hidden></ul>
+</label>

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Supplier Payments</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'supplier_payments:create' %}">+ Record payment</a>
+    </div>
+</div>
+
+{% if bill %}
+<section class="panel" style="margin-bottom:.85rem">
+    <h2 style="margin:.2rem 0">{{ bill.supplier }}</h2>
+    <p class="muted">Expense <a href="{% url 'expenses:detail' bill.id %}">{{ bill.number }}</a></p>
+    <div class="metrics-4" style="margin-top:.8rem">
+        <div class="metric"><span class="tiny">Total</span><b>{{ bill.amount|money }}</b></div>
+        <div class="metric"><span class="tiny">Already paid</span><b>{{ bill.paid|money }}</b></div>
+        <div class="metric"><span class="tiny">Remaining</span><b>{{ bill.remaining|money }}</b></div>
+        <div class="metric"><span class="tiny">Due</span><b style="font-size:1rem">{{ bill.due }}</b></div>
+    </div>
+    {% if bill.has_remaining %}
+    <p style="margin-top:1rem">
+        <a class="btn btn-warm" href="{% url 'supplier_payments:create' %}?expense_id={{ bill.id }}">Pay remaining {{ bill.remaining|money }}</a>
+    </p>
+    {% else %}
+    <p class="muted" style="margin-top:1rem">This bill is paid in full.</p>
+    {% endif %}
+</section>
+{% endif %}
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>SP#</th>
+                <th>Date</th>
+                <th>Supplier</th>
+                <th>Expense</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Reference</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sp in payments %}
+            <tr>
+                <td><a class="mono" href="{% url 'supplier_payments:detail' sp.id %}">{{ sp.number }}</a></td>
+                <td>{{ sp.date }}</td>
+                <td>{{ sp.supplier }}</td>
+                <td>{% if sp.expense_id %}<a href="{% url 'expenses:detail' sp.expense_id %}">{{ sp.expense }}</a>{% else %}{{ sp.expense }}{% endif %}</td>
+                <td><span class="chip is-on" style="cursor:default">{{ sp.method }}</span></td>
+                <td>{{ sp.amount|money }}</td>
+                <td class="mono">{{ sp.ref|default:"—" }}</td>
+                <td class="row-actions">
+                    {% url 'supplier_payments:detail' sp.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8">
+                    {% url 'supplier_payments:create' as pay_create_url %}
+                    {% include "components/empty_state.html" with title="No supplier payments yet" body="Record a payment against an open expense bill." cta="Record payment" cta_url=pay_create_url %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if payments %}
+    <div class="table-foot">
+        <span class="muted">Showing 1 to {{ payments|length }} of {{ payments|length }} entries</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="callout callout-info" style="margin-top:1rem">
+    Sum of this page is cash leaving, not company cost.
+</div>
+{% endblock %}

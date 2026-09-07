@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Who they are</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.first_name %}
+            {% include "components/form_field.html" with field=form.last_name %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.email %}
+            {% include "components/form_field.html" with field=form.phone %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.city %}
+            {% include "components/form_field.html" with field=form.country %}
+        </div>
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Travel documents</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.passport caption="Passport number" %}
+            {% include "components/form_field.html" with field=form.nationality %}
+        </div>
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save customer" }}</button>
+        {% if record %}
+        <a class="btn btn-ghost" href="{% url 'customers:detail' record.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'customers:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}

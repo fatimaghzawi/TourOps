@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Receipts</h1>
+    </div>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Receipt</th><th>Payment</th><th>Customer</th><th>Invoice</th><th>Amount</th><th>Issued</th><th></th></tr></thead>
+        <tbody>
+        {% for r in receipts %}
+            <tr>
+                <td><a class="mono" href="{% url 'receipts:detail' r.id %}">{{ r.number }}</a></td>
+                <td>{{ r.payment }}</td>
+                <td>{{ r.customer }}</td>
+                <td>{{ r.invoice }}</td>
+                <td>{{ r.amount|money }}</td>
+                <td>{{ r.issued }}</td>
+                <td class="row-actions">
+                    {% url 'receipts:detail' r.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7">{% include "components/empty_state.html" with title="No receipts yet" body="Receipts are issued automatically when a payment is recorded." %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

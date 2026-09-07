@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+{% if not form.fields.payment_id.choices and not payment %}
+    {% url 'payments:list' as payments_url %}
+    {% include "components/empty_state.html" with title="No completed payments to refund" body="Record a customer payment first. Refunds never edit the original payment." cta="View payments" cta_url=payments_url %}
+{% else %}
+<form method="post" class="ops-form"{% if nav.is_owner %} data-confirm="This pays the customer now. The original payment stays on the ledger as a completed receipt." data-confirm-title="Issue this refund?" data-confirm-ok="Refund now"{% endif %}>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Which payment</h2>
+            </div>
+        </header>
+        {% if payment %}
+        <div class="identity-chip">
+            <strong>{{ payment.number }}</strong>
+            <span>{{ payment.customer }} · paid {{ payment.amount|money }} · remaining {{ payment.remaining|money }}</span>
+        </div>
+        {{ form.payment_id }}{{ form.payment_id.errors }}
+        {% else %}
+        {% include "components/form_field.html" with field=form.payment_id caption="Payment" %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>How much to return</h2>
+            </div>
+        </header>
+        <fieldset class="type-picker-wrap">
+            <legend class="form-label">Cancellation policy <span class="req" title="Required">*</span></legend>
+            {{ form.policy_tier.errors }}
+            <div class="type-picker method-picker" role="radiogroup" aria-label="Cancellation policy">
+                {% for radio in form.policy_tier %}
+                <label class="type-card">
+                    {{ radio.tag }}
+                    <strong>{{ radio.choice_label }}</strong>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+        {% include "components/form_field.html" with field=form.amount caption="Refund amount" %}
+        {% include "components/form_field.html" with field=form.refund_method caption="Method" %}
+        {% include "components/form_field.html" with field=form.reason %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{% if nav.is_owner %}Refund now{% else %}Request refund{% endif %}</button>
+        {% if payment %}
+        <a class="btn btn-ghost" href="{% url 'payments:detail' payment.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'refunds:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% if not payment %}
+<script>
+(function () {
+    const select = document.querySelector('[name="payment_id"]');
+    if (!select) return;
+    select.addEventListener("change", function () {
+        if (!select.value) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set("payment_id", select.value);
+        window.location.href = url.toString();
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

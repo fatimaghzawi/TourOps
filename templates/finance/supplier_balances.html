@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Supplier Balances</h1>
+    </div>
+    <a class="btn btn-warm" href="{% url 'supplier_payments:create' %}">+ Record payment</a>
+</div>
+{% include "finance/_nav.html" %}
+
+{% if report %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr><th>Supplier</th><th>Open bills</th><th>Balance</th><th>Flags</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for row in report.suppliers %}
+            <tr>
+                <td>
+                    {% if row.supplier_id %}
+                    <a href="{% url 'suppliers:detail' row.supplier_id %}"><strong>{{ row.supplier }}</strong></a>
+                    {% else %}
+                    <strong>{{ row.supplier }}</strong>
+                    {% endif %}
+                </td>
+                <td>{{ row.count }}</td>
+                <td>
+                    {% if row.outstanding %}
+                    <strong class="ledger-out">{{ row.outstanding|money }}</strong>
+                    {% else %}
+                    <strong>{{ row.outstanding|money }}</strong>
+                    {% endif %}
+                </td>
+                <td>{% if row.overdue %}<span class="badge b-bad">OVERDUE</span>{% else %}<span class="badge b-ok">CURRENT</span>{% endif %}</td>
+                <td class="row-actions">
+                    {% if row.supplier_id %}
+                    {% url 'suppliers:detail' row.supplier_id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    <a class="ico-btn is-primary" href="{% url 'supplier_payments:create' %}?supplier_id={{ row.supplier_id }}" title="Record payment" aria-label="Record payment">
+                        {% include "components/ico_mark.html" with icon="pay" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">
+                    {% include "components/empty_state.html" with title="No supplier balances" body="Suppliers with unpaid expense balances will appear here." %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="callout callout-info" style="margin-top:1rem">
+    Balances are calculated live. Do not store editable balances.
+</div>
+{% endblock %}

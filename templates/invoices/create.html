@@ -1,0 +1,48 @@
+{% extends "base_invoices.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head" style="margin-bottom:1rem">
+    <div>
+        <h1>Create Invoice</h1>
+    </div>
+</div>
+
+<div class="card-table">
+    <div class="ct-head">
+        Confirmed bookings awaiting invoice
+        <small>{{ bookings|length }} available</small>
+    </div>
+    <table class="data">
+        <thead>
+            <tr><th>Booking</th><th>Customer</th><th>Tour</th><th>Travelers</th><th>Amount</th><th>Booking Status</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for b in bookings %}
+            <tr>
+                <td><a class="bk-id" href="{% url 'bookings:detail' b.id %}">{{ b.number }}</a></td>
+                <td>
+                    <span class="rowc">
+                        <span class="av" style="background:{{ b.avatar }}">{{ b.customer|slice:":1"|upper }}</span>
+                        {{ b.customer }}
+                    </span>
+                </td>
+                <td>{{ b.tour }}</td>
+                <td>{{ b.travelers }}</td>
+                <td>{{ b.amount|money }}</td>
+                <td><span class="pill paid">CONFIRMED</span></td>
+                <td class="row-actions">
+                    <form method="post" action="{% url 'invoices:from_booking' b.id %}" class="ico-form">
+                        {% csrf_token %}
+                        <button class="ico-btn is-primary" type="submit" title="Generate invoice" aria-label="Generate invoice">
+                            {% include "components/ico_mark.html" with icon="bill" %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#94a3b8">No confirmed bookings awaiting an invoice.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

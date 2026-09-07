@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="hero-tour{% if record.cover %} has-photo{% endif %}">
+    {% if record.cover %}
+    <img class="hero-tour-photo" src="{% url 'attachments:preview' record.cover.id %}" alt="{{ record.name }}">
+    {% endif %}
+    <div>
+        <p class="tiny">{{ record.city }}{% if record.country %} · {{ record.country }}{% endif %}</p>
+        <h1>{{ record.name }}</h1>
+        <p class="muted">{{ record.dates }} · {{ record.code }}{% if record.package %} · {{ record.package }}{% endif %}</p>
+        <div style="margin-top:.7rem;max-width:280px">
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.25rem">
+                <span data-cap-label>{{ record.booked }} / {{ record.capacity }} seats</span>
+                <span>{{ record.pct }}%</span>
+            </div>
+            {% include "components/capacity_bar.html" with pct=record.pct animate=1 %}
+        </div>
+    </div>
+    <div class="hero-kpis">
+        <div><span class="tiny">Price</span><b>{{ record.price|money }}</b></div>
+        <div><span class="tiny">Status</span><b style="font-size:1rem">{% include "components/status_badge.html" with status=record.status %}</b></div>
+            <div class="ico-toolbar">
+            {% if record.can_take_bookings %}
+            <a class="ico-btn is-primary" href="{% url 'bookings:create' %}?tour_id={{ record.id }}" title="Add booking" aria-label="Add booking">
+                {% include "components/ico_mark.html" with icon="book" %}
+            </a>
+            {% else %}
+            <a class="ico-btn" href="?tab=reservations" title="Waiting on suppliers" aria-label="Waiting on suppliers">
+                {% include "components/ico_mark.html" with icon="calendar" %}
+            </a>
+            {% endif %}
+            {% url 'tours:edit' record.id as edit_url %}
+            {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+            {% if not record.booked %}
+            {% url 'tours:delete' record.id as delete_url %}
+            {% include "components/ico_btn.html" with action=delete_url title="Delete" icon="delete" danger=1 confirm="This departure comes off the board. Bookings must already be empty." confirm_title="Scrap this tour?" confirm_ok="Delete tour" %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="tabs">
+    <a class="{% if tab == 'overview' %}is-on{% endif %}" href="?tab=overview">Overview</a>
+    <a class="{% if tab == 'gallery' %}is-on{% endif %}" href="?tab=gallery">Gallery</a>
+    <a class="{% if tab == 'bookings' %}is-on{% endif %}" href="?tab=bookings">Bookings</a>
+    <a class="{% if tab == 'reservations' %}is-on{% endif %}" href="?tab=reservations">Reservations</a>
+    <a class="{% if tab == 'travelers' %}is-on{% endif %}" href="?tab=travelers">Travelers</a>
+    <a class="{% if tab == 'services' %}is-on{% endif %}" href="?tab=services">Planned services</a>
+    <a class="{% if tab == 'expenses' %}is-on{% endif %}" href="?tab=expenses">Finance</a>
+    <a class="{% if tab == 'profit' %}is-on{% endif %}" href="?tab=profit">Profitability</a>
+    <a class="{% if tab == 'activity' %}is-on{% endif %}" href="?tab=activity">Activity</a>
+</div>
+
+{% if not record.can_take_bookings %}
+<div class="callout callout-info" style="margin:.8rem 0">
+    <p>{{ record.booking_block_reason }}</p>
+    <p><a href="?tab=reservations">Open supplier reservations</a></p>
+</div>
+{% endif %}
+
+{% if tab == 'overview' %}
+<div class="metrics-4">
+    <div class="metric"><span class="tiny">Booked</span><b>{{ record.booked }}</b></div>
+    <div class="metric"><span class="tiny">Available</span><b>{{ record.available }}</b></div>
+    <div class="metric"><span class="tiny">Projected revenue</span><b>{{ record.revenue|money }}</b></div>
+    <div class="metric"><span class="tiny">Projected profit</span><b>{{ record.profit|money }}</b></div>
+</div>
+{% if record.costing.has_costs %}
+{% include "components/cost_sheet.html" with costing=record.costing heading="Estimated land cost" intro="This is the catalog estimate used to set the selling price. The Finance tab uses recorded expenses after the trip is operating." %}
+{% endif %}
+{% if record.gallery %}
+<section class="gallery-strip">
+    <div class="panel-h">
+        <h2>Show the client</h2>
+        <a class="tiny" href="?tab=gallery">Open full gallery</a>
+    </div>
+    <div class="gallery-grid is-strip" data-gallery>
+        {% for photo in record.gallery %}
+        <button type="button" class="gallery-shot" data-gallery-src="{% url 'attachments:preview' photo.id %}" data-gallery-alt="{{ photo.file_name }}">
+            <img src="{% url 'attachments:preview' photo.id %}" alt="{{ photo.file_name }}">
+        </button>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% if record.accommodation.warnings %}
+<div class="callout callout-info" style="margin:.8rem 0">
+    {% for warning in record.accommodation.warnings %}<p>{{ warning }}</p>{% endfor %}
+</div>
+{% endif %}
+{% elif tab == 'gallery' %}
+<section class="gallery-stage">
+    <div class="page-head" style="margin-bottom:0.8rem">
+        <div>
+            <h2 style="margin:0">{{ record.name }}</h2>
+            <p class="muted">{{ record.city }}{% if record.country %} · {{ record.country }}{% endif %} · {{ record.dates }}</p>
+        </div>
+        {% if nav.ops %}
+        <a class="btn btn-ghost" href="{% url 'tours:edit' record.id %}">Edit tour</a>
+        {% endif %}
+    </div>
+    {% if nav.ops and gallery_room %}
+    <form method="post" action="{% url 'tours:gallery_add' record.id %}" enctype="multipart/form-data" class="gallery-add">
+        {% csrf_token %}
+        {% include "components/gallery_picker.html" with gallery_room=gallery_room picker_label="Add photos to this gallery" %}
+        <button class="btn btn-warm" type="submit">Upload photos</button>
+    </form>
+    {% endif %}
+    {% if record.gallery %}
+    <div class="gallery-grid" data-gallery>
+        {% for photo in record.gallery %}
+        <figure class="gallery-cell">
+            <button type="button" class="gallery-shot" data-gallery-src="{% url 'attachments:preview' photo.id %}" data-gallery-alt="{{ photo.file_name }}">
+                <img src="{% url 'attachments:preview' photo.id %}" alt="{{ photo.file_name }}">
+            </button>
+            {% if nav.ops %}
+            <form method="post" action="{% url 'attachments:delete' photo.id %}" class="gallery-del" data-confirm="This photo leaves the tour gallery." data-confirm-title="Pull this shot?" data-confirm-ok="Remove photo">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="ico-btn is-danger" type="submit" title="Remove photo" aria-label="Remove photo">
+                    {% include "components/ico_mark.html" with icon="delete" %}
+                </button>
+            </form>
+            {% endif %}
+        </figure>
+        {% endfor %}
+    </div>
+    {% else %}
+    {% if nav.ops and gallery_room %}
+    <p class="muted">No photos yet. Upload several images below.</p>
+    {% else %}
+    {% url 'tours:edit' record.id as tour_edit_url %}
+    {% include "components/empty_state.html" with title="No gallery yet" body="Add photos on the tour so agents can walk a client through the departure." cta="Add photos" cta_url=tour_edit_url %}
+    {% endif %}
+    {% endif %}
+</section>
+{% elif tab == 'bookings' %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Booking</th><th>Customer</th><th>Travelers</th><th>Status</th><th>Total</th></tr></thead>
+        <tbody>
+        {% for b in record.bookings %}
+            <tr>
+                <td><a href="{% url 'bookings:detail' b.id %}">{{ b.number }}</a></td>
+                <td>{{ b.customer }}</td>
+                <td>{{ b.travelers }}</td>
+                <td>{% include "components/status_badge.html" with status=b.status %}</td>
+                <td>{{ b.total|money }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">{% include "components/empty_state.html" with title="No bookings yet" body="Confirmed seats will appear here once bookings are recorded for this departure." %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif tab == 'travelers' %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Name</th><th>Passport</th><th>Type</th></tr></thead>
+        <tbody>
+        {% for t in record.travelers %}
+            <tr><td>{{ t.name }}</td><td class="mono">{{ t.passport }}</td><td>{{ t.type }}</td></tr>
+        {% empty %}
+            <tr><td colspan="3"><p class="muted" style="margin:.8rem">No traveler names on file yet.</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif tab == 'services' %}
+<div class="panel">
+    {% for line in record.planned_ops %}
+        <div class="it-block" style="margin-top:.85rem">
+            <div>
+                <strong>{{ line.title }}</strong>
+                <div class="muted" style="font-size:.84rem">{{ line.type_label }} · {{ line.supplier }} · Est. {{ line.estimated_cost|money }}{% if line.basis_label %} {{ line.basis_label }}{% endif %}</div>
+                {% if line.has_reservation %}
+                    {% for r in line.reservations %}
+                        <div style="margin-top:.35rem">Reservation: ✓ <a href="{% url 'supplier_reservations:detail' r.id %}">{{ r.number }}</a> — {% include "components/status_badge.html" with status=r.status %}</div>
+                    {% endfor %}
+                {% else %}
+                    <p class="muted" style="margin-top:.35rem">No supplier reservation recorded.</p>
+                    {% if line.supplier_id %}
+                    <a class="ico-btn" href="{% url 'supplier_reservations:create' %}?tour_id={{ record.id }}&supplier_id={{ line.supplier_id }}" title="Create reservation" aria-label="Create reservation">
+                        {% include "components/ico_mark.html" with icon="calendar" %}
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="muted">No planned supplier services on this departure.</p>
+    {% endfor %}
+</div>
+{% elif tab == 'reservations' %}
+<div class="metrics-4" style="margin-bottom:1rem">
+    <div class="metric"><span class="tiny">Confirmed travelers</span><b>{{ record.accommodation.confirmed_travelers|default:0 }}</b></div>
+    <div class="metric"><span class="tiny">Hotels</span><b>{{ record.accommodation.hotels|length }}</b></div>
+    <div class="metric"><span class="tiny">Supplier reservations</span><b>{{ record.reservations|length }}</b></div>
+</div>
+<div class="ico-toolbar" style="margin-bottom:.8rem">
+    <a class="ico-btn is-primary" href="{% url 'supplier_reservations:create' %}?tour_id={{ record.id }}" title="Arrange supplier" aria-label="Arrange supplier">
+        {% include "components/ico_mark.html" with icon="calendar" %}
+    </a>
+</div>
+
+<section class="panel" style="margin-bottom:1rem">
+    <h2>Planned services vs reservations</h2>
+    {% for line in record.planned_ops %}
+        <div class="planned-row">
+            <div>
+                <span class="tiny">{{ line.type_label|default:"Service" }}</span>
+                <strong>{{ line.supplier }}</strong>
+                <div class="muted">Estimated {{ line.estimated_cost|money }}{% if line.title and line.title != line.supplier %} · {{ line.title }}{% endif %}</div>
+            </div>
+            <div>
+                {% if line.has_reservation %}
+                    {% for r in line.reservations %}
+                        <p>✓ <a href="{% url 'supplier_reservations:detail' r.id %}">{{ r.number }}</a> — {% include "components/status_badge.html" with status=r.status %}</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="muted">No supplier reservation recorded.</p>
+                    {% if line.supplier_id %}
+                    <a class="ico-btn" href="{% url 'supplier_reservations:create' %}?tour_id={{ record.id }}&supplier_id={{ line.supplier_id }}" title="Create reservation" aria-label="Create reservation">
+                        {% include "components/ico_mark.html" with icon="calendar" %}
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="muted" style="margin-top:.5rem">No planned services. Reservations below can still be added directly.</p>
+    {% endfor %}
+</section>
+
+{% if record.accommodation.hotels %}
+<section class="panel" style="margin-bottom:1rem">
+    <h2>Accommodation</h2>
+    {% for hotel in record.accommodation.hotels %}
+        <p style="margin-top:.55rem">
+            <a href="{% url 'supplier_reservations:detail' hotel.id %}"><strong>{{ hotel.supplier }}</strong></a>
+            {% include "components/status_badge.html" with status=hotel.status %}
+            {% if hotel.confirmation_number %}<span class="tiny">Confirmation {{ hotel.confirmation_number }}</span>{% endif %}
+        </p>
+    {% endfor %}
+</section>
+{% elif record.planned_ops %}
+<section class="panel" style="margin-bottom:1rem">
+    <p class="tiny">Nothing here yet</p>
+    <h2 style="margin:.35rem 0 .4rem">No accommodation reservation yet</h2>
+    <p>A hotel may be planned for this tour, but no supplier reservation has been recorded yet.</p>
+    <p style="margin-top:1rem">
+        <a class="ico-btn is-primary" href="{% url 'supplier_reservations:create' %}?tour_id={{ record.id }}" title="Create reservation" aria-label="Create reservation">
+            {% include "components/ico_mark.html" with icon="calendar" %}
+        </a>
+    </p>
+</section>
+{% endif %}
+
+{% for group in record.reservation_groups %}
+<section class="panel" style="margin-bottom:.85rem">
+    <h2>{{ group.label }}</h2>
+    {% for r in group.rows %}
+        <div class="ops-row">
+            <div>
+                <a href="{% url 'supplier_reservations:detail' r.id %}"><strong>{{ r.supplier }}</strong></a>
+                <div class="tiny">{{ r.number }}{% if r.confirmation_number %} · Confirmation {{ r.confirmation_number }}{% endif %}</div>
+                {% if r.quantity %}
+                    <p>{{ r.quantity }} × {{ r.service_label }}</p>
+                {% else %}
+                    <p>{{ r.service_label }}</p>
+                {% endif %}
+            </div>
+            <div class="row-actions">
+                {% include "components/status_badge.html" with status=r.status %}
+                {% url 'supplier_reservations:detail' r.id as view_url %}
+                {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                {% if r.is_requested %}
+                <a class="ico-btn" href="{% url 'supplier_reservations:detail' r.id %}#confirm" title="Record confirmation" aria-label="Record confirmation">
+                    {% include "components/ico_mark.html" with icon="check" %}
+                </a>
+                {% endif %}
+                <a class="ico-btn" href="{% url 'supplier_reservations:email' r.id %}" title="Email supplier" aria-label="Email supplier">
+                    {% include "components/ico_mark.html" with icon="mail" %}
+                </a>
+                {% if not r.is_cancelled %}
+                {% url 'supplier_reservations:edit' r.id as edit_url %}
+                {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</section>
+{% empty %}
+<div class="panel">
+    {% url 'supplier_reservations:create' as create_url %}
+    {% include "components/empty_state.html" with title="No supplier reservations on this departure yet" body="Arrange hotels, transport and guides after contacting them outside TourOps." cta="Arrange supplier" cta_url=create_url %}
+</div>
+{% endfor %}
+{% elif tab == 'expenses' %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Expense</th><th>Supplier</th><th>Category</th><th>Amount</th><th>Remaining</th></tr></thead>
+        <tbody>
+        {% for e in record.expenses %}
+            <tr {% if e.overdue %}class="is-overdue"{% endif %}>
+                <td>{% if nav.finance %}<a href="{% url 'expenses:detail' e.id %}">{{ e.number }}</a>{% else %}{{ e.number }}{% endif %}</td>
+                <td>{{ e.supplier }}</td>
+                <td>{{ e.category|labelize }}</td>
+                <td>{{ e.amount|money }}</td>
+                <td>{{ e.remaining|money }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5"><p class="muted" style="margin:.8rem">No expenses recorded against this tour.</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif tab == 'profit' %}
+<div class="callout callout-info" style="margin:.8rem 0">
+    <p>This tab is <strong>actuals</strong>: confirmed booking revenue minus expenses recorded on this tour. Estimated land cost lives on Overview.</p>
+</div>
+<div class="panel">
+    <div class="waterfall">
+        <div class="wf"><span>Revenue</span><div class="track"><i class="rev" style="width:100%"></i></div><b>{{ record.revenue|money }}</b></div>
+        <div class="wf"><span>Costs</span><div class="track"><i class="cost" style="width:{{ record.cost_pct }}%"></i></div><b>{{ record.costs|money }}</b></div>
+        <div class="wf"><span>Profit</span><div class="track"><i class="profit" style="width:{% if record.profit > 0 %}{{ record.margin }}{% else %}0{% endif %}%"></i></div><b>{{ record.profit|money }}</b></div>
+    </div>
+    <p style="margin-top:.8rem">Margin <strong>{{ record.margin }}%</strong></p>
+    {% if nav.finance %}
+    <p><a href="{% url 'reports:profitability' %}?tour={{ record.id }}">Open full profitability</a></p>
+    {% endif %}
+</div>
+{% else %}
+<section class="panel">
+    {% for item in record.activity %}
+        <div class="tl" style="margin-bottom:.6rem"><i></i><div>{{ item.text }}</div></div>
+    {% empty %}
+        <p class="muted">No activity recorded yet.</p>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/gallery-picker.js' %}?v=1"></script>
+{% endblock %}

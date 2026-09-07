@@ -1,0 +1,13 @@
+{% if action %}
+<form method="post" action="{{ action }}" class="ico-form"{% if confirm %} data-confirm="{{ confirm }}" data-confirm-title="{{ confirm_title|default:'Hold on' }}" data-confirm-ok="{{ confirm_ok|default:'Yes, continue' }}"{% endif %}>
+    {% csrf_token %}
+    {% if hidden_name %}<input type="hidden" name="{{ hidden_name }}" value="{{ hidden_value }}">{% endif %}
+    <button class="ico-btn{% if danger %} is-danger{% endif %}{% if primary %} is-primary{% endif %}" type="submit" title="{{ title }}" aria-label="{{ title }}">
+        {% include "components/ico_mark.html" with icon=icon %}
+    </button>
+</form>
+{% else %}
+<a class="ico-btn{% if primary %} is-primary{% endif %}{% if danger %} is-danger{% endif %}" href="{{ href }}" title="{{ title }}" aria-label="{{ title }}">
+    {% include "components/ico_mark.html" with icon=icon %}
+</a>
+{% endif %}

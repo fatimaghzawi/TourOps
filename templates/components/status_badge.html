@@ -1,0 +1,4 @@
+{% load tourops %}
+{% if status %}
+<span class="badge {{ status|badge_class }}">{{ status|labelize }}</span>
+{% endif %}

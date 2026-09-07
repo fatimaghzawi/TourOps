@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ page_title }}{% endblock %} · {{ brand.name }}</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}?v=25">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="app-body {% block body_class %}{% endblock %}">
+    <div class="app-shell">
+        {% include "components/sidebar.html" %}
+        <div class="app-main">
+            {% include "components/navbar.html" %}
+            <main class="app-content">
+                {% include "components/alerts.html" %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    <div class="toast" id="app-toast" role="status"></div>
+    <div class="confirm-layer" id="app-confirm" hidden>
+        <div class="confirm-scrim" data-confirm-dismiss></div>
+        <div class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="confirm-mark" aria-hidden="true">?</div>
+            <h2 id="confirm-title">Hold on</h2>
+            <p id="confirm-body"></p>
+            <div class="confirm-actions">
+                <button class="btn btn-ghost" type="button" data-confirm-dismiss>Keep it</button>
+                <button class="btn btn-danger" type="button" id="confirm-ok">Yes, continue</button>
+            </div>
+        </div>
+    </div>
+    <div class="lightbox" id="app-lightbox" hidden>
+        <div class="lightbox-scrim" data-lightbox-close></div>
+        <button class="btn btn-ghost lightbox-close" type="button" data-lightbox-close>Close</button>
+        <img alt="">
+    </div>
+    <script src="{% static 'js/app.js' %}?v=7"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

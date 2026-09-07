@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Forbidden{% endblock %}
+{% block content %}
+<div class="empty">
+    <p class="tiny">403</p>
+    <h1>This module is outside your role</h1>
+    <p>Ask an Owner / Admin if you need access to this part of TourOps.</p>
+    <p style="margin-top:1rem"><a class="btn btn-warm" href="{% url 'dashboard:home' %}">Back to dashboard</a></p>
+</div>
+{% endblock %}

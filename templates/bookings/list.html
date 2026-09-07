@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Bookings</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'bookings:create' %}">New booking</a>
+    </div>
+</div>
+
+<div class="filters" data-live-filters>
+    <select class="field" data-live-field="status">
+        <option value="">All statuses</option>
+        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="CONFIRMED" {% if status_filter == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+        <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+        <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+    </select>
+</div>
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Booking</th>
+                <th>Customer</th>
+                <th>Tour</th>
+                <th>Travelers</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for b in bookings %}
+            <tr data-live-row data-status="{{ b.status }}" data-search="{{ b.number }} {{ b.customer }} {{ b.product }}">
+                <td><a class="mono" href="{% url 'bookings:detail' b.id %}"><strong>{{ b.number }}</strong></a></td>
+                <td>{% if b.customer_id %}<a href="{% url 'customers:detail' b.customer_id %}">{{ b.customer }}</a>{% else %}{{ b.customer }}{% endif %}</td>
+                <td>{{ b.product }}<div class="muted">{{ b.dates }}</div></td>
+                <td>{{ b.travelers_count }}</td>
+                <td>{% include "components/status_badge.html" with status=b.status %}</td>
+                <td>{% include "components/status_badge.html" with status=b.pay %}</td>
+                <td><strong>{{ b.total|money }}</strong></td>
+                <td class="row-actions">
+                    {% url 'bookings:detail' b.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% if b.pay != 'PAID' and b.status != 'CANCELLED' %}
+                    <a class="ico-btn is-primary" href="{% url 'bookings:detail' b.id %}" title="Collect payment" aria-label="Collect payment">
+                        {% include "components/ico_mark.html" with icon="pay" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8">
+                    <p class="muted" style="margin:.8rem">Create a booking, then confirm and collect payment on the booking page.</p>
+                </td>
+            </tr>
+        {% endfor %}
+            <tr data-live-empty hidden>
+                <td colspan="8"><p class="muted" style="margin:.8rem">No bookings match.</p></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

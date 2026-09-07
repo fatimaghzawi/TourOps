@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Audit log</h1>
+    </div>
+</div>
+<form class="filter-bar" method="get" data-autosubmit>
+    <label>Person
+        <select class="field" name="user_id">
+            <option value="">Anyone</option>
+            {% for u in users %}
+            <option value="{{ u.id }}" {% if filters.user_id == u.id %}selected{% endif %}>{{ u.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Action
+        <select class="field" name="action">
+            <option value="">All actions</option>
+            {% for value, label in action_choices %}
+            <option value="{{ value }}" {% if filters.action == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Record
+        <select class="field" name="entity_type">
+            <option value="">All records</option>
+            {% for value, label in entity_choices %}
+            <option value="{{ value }}" {% if filters.entity_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>From
+        <input class="field" type="date" name="from" value="{{ filters.from }}">
+    </label>
+    <label>To
+        <input class="field" type="date" name="to" value="{{ filters.to }}">
+    </label>
+    <div class="filter-actions">
+        {% if filters.user_id or filters.action or filters.entity_type or filters.from or filters.to %}
+        <a class="btn btn-ghost" href="{% url 'audit:list' %}">Clear</a>
+        {% endif %}
+    </div>
+</form>
+<div class="panel" style="padding:0">
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Person</th>
+                    <th>Action</th>
+                    <th>Record</th>
+                    <th>What happened</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for a in logs %}
+                <tr>
+                    <td>
+                        <strong>{{ a.date }}</strong>
+                        <small class="muted" style="display:block">{{ a.time }}</small>
+                    </td>
+                    <td>{{ a.who }}</td>
+                    <td><span class="badge {{ a.action_badge }}">{{ a.action_label }}</span></td>
+                    <td>
+                        {{ a.entity_label|default:a.entity_type }}
+                        {% if a.entity_id %}<small class="mono" style="display:block;color:var(--mute)">{{ a.entity_id }}</small>{% endif %}
+                    </td>
+                    <td>{{ a.description }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">
+                        {% include "components/empty_state.html" with title="No activity yet" body="Creates, updates, payments, and file uploads will appear in this log." %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

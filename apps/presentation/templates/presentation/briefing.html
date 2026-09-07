@@ -1,0 +1,27 @@
+{% extends "presentation/shell.html" %}
+{% block title %}Watch one tour come to life{% endblock %}
+{% block body_class %}is-lobby{% endblock %}
+{% block theater %}
+<div class="lobby">
+    <p class="lobby-kicker">Presentation · outside TourOps</p>
+    <h1>Watch one tour come to life</h1>
+    <p class="lobby-lede">Istanbul Escape · 15–20 September · 30 travelers. This is not the product. It is the story of the rules the product refuses to break.</p>
+
+    {% if error %}
+    <div class="lobby-card is-warn">
+        <p class="edge-label">Cannot start</p>
+        <p>{{ error }}</p>
+    </div>
+    {% else %}
+    <ol class="lobby-beats">
+        <li>Green dots are the chain: supplier → profit.</li>
+        <li>Every screen has an edge case. That card is the point.</li>
+        <li>N / P or arrows move. Esc leaves. The TourOps sidebar never appears.</li>
+    </ol>
+    <form method="post" class="lobby-go">
+        {% csrf_token %}
+        <button class="theater-btn is-go" type="submit">Enter the theater</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

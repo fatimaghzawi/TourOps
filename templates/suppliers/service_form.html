@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        {% if supplier %}<p class="tiny">{{ supplier.number }} · {{ supplier.type_label }}</p>{% endif %}
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+{% if needs_supplier %}
+    {% url 'suppliers:create' as supplier_create_url %}
+    {% include "components/empty_state.html" with title="Create a supplier first" body="A service always belongs to a supplier. Add the hotel, transporter, or guide, then come back to record what they provide." cta="New supplier" cta_url=supplier_create_url %}
+{% else %}
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    {% if pick_supplier %}
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Existing supplier</h2>
+            </div>
+        </header>
+        <label class="form-field is-required">
+            <span class="form-label">Search<span class="req" title="Required">*</span></span>
+            <input class="field" type="search" data-supplier-filter placeholder="Name, city, type, or supplier number…" autocomplete="off" aria-controls="supplier-picker-list">
+        </label>
+        <div class="catalog-list" id="supplier-picker-list" data-supplier-list role="listbox" aria-label="Existing suppliers">
+            {% for row in picker_suppliers %}
+            <button type="button" class="catalog-row{% if form.supplier_id.value == row.id %} is-on{% endif %}" data-supplier-row data-id="{{ row.id }}" data-kind="{{ row.default_kind }}" data-search="{{ row.search }}" role="option" aria-selected="{% if form.supplier_id.value == row.id %}true{% else %}false{% endif %}">
+                <span>
+                    <strong>{{ row.name }}</strong>
+                    <span class="muted">{{ row.type_label }}{% if row.number %} · {{ row.number }}{% endif %}{% if row.city %} · {{ row.city }}{% endif %}</span>
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+        <p class="muted" data-supplier-empty hidden>No suppliers match that search.</p>
+        <div class="supplier-id-field">
+            {{ form.supplier_id }}
+            {{ form.supplier_id.errors }}
+        </div>
+        <p><a href="{% url 'suppliers:create' %}">Create supplier</a></p>
+    </section>
+    {% elif supplier %}
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Existing supplier</h2>
+            </div>
+        </header>
+        <div class="identity-chip">
+            <strong>{{ supplier.name }}</strong>
+            <span>{{ supplier.type_label }} · {{ supplier.number }}</span>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Service</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.name caption="Service name" %}
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.service_kind caption="What it provides" %}
+            {% include "components/form_field.html" with field=form.estimated_cost caption="Typical cost" %}
+        </div>
+        {% include "components/form_field.html" with field=form.cost_basis caption="How this cost is counted" %}
+        {% include "components/form_field.html" with field=form.currency %}
+        {% include "components/form_field.html" with field=form.description caption="Notes for the agent" %}
+        {% if form.status %}
+        {% include "components/form_field.html" with field=form.status %}
+        {% endif %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save service" }}</button>
+        {% if supplier %}
+        <a class="btn btn-ghost" href="{% url 'suppliers:detail' supplier.id %}?tab=services">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'suppliers:services' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% if pick_supplier %}
+<script>
+(function () {
+    const select = document.querySelector("[name='supplier_id']");
+    const input = document.querySelector("[data-supplier-filter]");
+    const rows = Array.from(document.querySelectorAll("[data-supplier-row]"));
+    const empty = document.querySelector("[data-supplier-empty]");
+    const kind = document.querySelector("[name='service_kind']");
+    if (!input || !select || !rows.length) return;
+
+    function markSelected(id) {
+        rows.forEach(function (row) {
+            const on = row.getAttribute("data-id") === id;
+            row.classList.toggle("is-on", on);
+            row.setAttribute("aria-selected", on ? "true" : "false");
+        });
+    }
+
+    function filterRows() {
+        const q = input.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(function (row) {
+            const hay = (row.getAttribute("data-search") || "").toLowerCase();
+            const hide = Boolean(q) && hay.indexOf(q) === -1;
+            row.hidden = hide;
+            if (!hide) visible += 1;
+        });
+        if (empty) empty.hidden = visible !== 0;
+    }
+
+    input.addEventListener("input", filterRows);
+    input.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        const first = rows.find(function (row) { return !row.hidden; });
+        if (first) first.click();
+    });
+    rows.forEach(function (row) {
+        row.addEventListener("click", function () {
+            select.value = row.getAttribute("data-id") || "";
+            markSelected(select.value);
+            if (kind && row.getAttribute("data-kind")) {
+                kind.value = row.getAttribute("data-kind");
+            }
+        });
+    });
+    if (select.value) markSelected(select.value);
+    filterRows();
+})();
+</script>
+{% endif %}
+<script>
+(function () {
+    const kind = document.querySelector("[name='service_kind']");
+    const basis = document.querySelector("[name='cost_basis']");
+    if (!kind || !basis) return;
+    kind.addEventListener("change", function () {
+        if (basis.dataset.touched === "1") return;
+        basis.value = kind.value === "ACCOMMODATION" ? "PER_PERSON" : "PER_GROUP";
+    });
+    basis.addEventListener("change", function () {
+        basis.dataset.touched = "1";
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Cash ledger</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'reports:list' %}{{ query }}">All reports</a>
+</div>
+{% include "reports/_filters.html" %}
+{% if report %}
+<div class="stat-row">
+    <article class="stat-tile stat-pulse">
+        <div class="stat-bars" aria-hidden="true">
+            <i style="height:50%"></i><i style="height:70%"></i><i style="height:60%"></i>
+            <i style="height:85%"></i><i style="height:75%"></i>
+        </div>
+        <div class="stat-copy">
+            <span class="tiny">Money in</span>
+            <b>{{ report.money_in|money }}</b>
+        </div>
+    </article>
+    <article class="stat-tile stat-alert">
+        <span class="stat-flag">Cash out</span>
+        <div class="stat-copy">
+            <span class="tiny">Money out</span>
+            <b>{{ report.money_out|money }}</b>
+        </div>
+    </article>
+    <article class="stat-tile stat-money tone-blue">
+        <div class="stat-copy">
+            <span class="tiny">Net</span>
+            <b>{{ report.net|money }}</b>
+        </div>
+        <span class="stat-mark" aria-hidden="true">Σ</span>
+    </article>
+    <article class="stat-tile stat-count tone-teal">
+        <div class="stat-ring"><b>{{ report.count }}</b></div>
+        <div class="stat-copy">
+            <span class="tiny">Rows</span>
+        </div>
+    </article>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Kind</th><th>Number</th><th>Party</th><th>Date</th><th>Ref</th><th>Amount</th></tr></thead>
+        <tbody>
+        {% for row in report.transactions %}
+            <tr>
+                <td>{{ row.kind|labelize }}</td>
+                <td class="mono">{{ row.number }}</td>
+                <td>{{ row.party }}</td>
+                <td>{{ row.date }}</td>
+                <td>{{ row.ref }}</td>
+                <td class="{% if row.direction == 'IN' %}tx-in{% else %}tx-out{% endif %}">
+                    {% if row.direction == 'IN' %}+{% else %}−{% endif %}{{ row.amount|money }}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted" style="padding:1rem">No cash movements in this range.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

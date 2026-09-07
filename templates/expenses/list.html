@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Expenses</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'expenses:create' %}">+ New Expense</a>
+    </div>
+</div>
+
+<section class="panel filter-toolbar">
+    <div class="filter-group">
+        <span class="tiny">Scope</span>
+        <div class="filters" style="margin:0">
+            <a class="chip {% if not scope %}is-on{% endif %}" href="?{% if status %}status={{ status }}{% endif %}{% if category %}{% if status %}&{% endif %}category={{ category }}{% endif %}">All</a>
+            {% for value, label in scope_choices %}
+            <a class="chip {% if scope == value %}is-on{% endif %}" href="?scope={{ value }}{% if status %}&status={{ status }}{% endif %}{% if category %}&category={{ category }}{% endif %}">{{ value }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="filter-group">
+        <span class="tiny">Status</span>
+        <div class="filters" style="margin:0">
+            {% for value, label in status_choices %}
+            <a class="chip chip-{% if value == 'PAID' %}ok{% elif value == 'PARTIALLY_PAID' %}warn{% else %}bad{% endif %} {% if status == value %}is-on{% endif %}" href="?status={{ value }}{% if scope %}&scope={{ scope }}{% endif %}{% if category %}&category={{ category }}{% endif %}">{{ value }}</a>
+            {% endfor %}
+            <a class="chip chip-bad {% if overdue %}is-on{% endif %}" href="?overdue=1{% if scope %}&scope={{ scope }}{% endif %}{% if category %}&category={{ category }}{% endif %}">OVERDUE</a>
+        </div>
+    </div>
+    <div class="filter-group">
+        <span class="tiny">Category</span>
+        <form method="get" class="filters" style="margin:0">
+            {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
+            {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+            <select class="field" name="category" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for value, label in category_choices %}
+                <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</section>
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Exp#</th>
+                <th>Description</th>
+                <th>Supplier</th>
+                <th>Tour</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Paid</th>
+                <th>Remaining</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for e in expenses %}
+            <tr class="{% if e.overdue %}is-overdue{% endif %}">
+                <td><a class="mono" href="{% url 'expenses:detail' e.id %}">{{ e.number }}</a></td>
+                <td>{{ e.description|default:"—" }}</td>
+                <td>{{ e.supplier|default:"—" }}</td>
+                <td>{{ e.related }}</td>
+                <td><span class="category">{{ e.category }}</span></td>
+                <td>{{ e.amount|money }}</td>
+                <td>{{ e.paid|money }}</td>
+                <td><strong>{{ e.remaining|money }}</strong></td>
+                <td>{% include "components/status_badge.html" with status=e.status %}</td>
+                <td class="row-actions">
+                    {% url 'expenses:detail' e.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% url 'expenses:edit' e.id as edit_url %}
+                    {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+                    {% if e.has_remaining %}
+                    <a class="ico-btn is-primary" href="{% url 'supplier_payments:create' %}?expense_id={{ e.id }}" title="Record payment" aria-label="Record payment">
+                        {% include "components/ico_mark.html" with icon="pay" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="10">
+                    {% url 'expenses:create' as expense_create_url %}
+                    {% include "components/empty_state.html" with title="No expenses yet" body="Record a supplier bill or overhead cost to start tracking payables." cta="New expense" cta_url=expense_create_url %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if expenses %}
+    <div class="table-foot">
+        <span class="muted">Showing 1 to {{ expenses|length }} of {{ expenses|length }} expenses</span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

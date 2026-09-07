@@ -1,0 +1,15 @@
+{% if messages %}
+    <div class="mb-5 space-y-2">
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="rounded-xl border border-mint/30 bg-mint/10 px-3.5 py-2.5 text-sm text-teal-800">{{ message }}</div>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                <div class="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{{ message }}</div>
+            {% elif message.tags == 'warning' %}
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">{{ message }}</div>
+            {% else %}
+                <div class="rounded-xl border border-brand/20 bg-brand/5 px-3.5 py-2.5 text-sm text-deep">{{ message }}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

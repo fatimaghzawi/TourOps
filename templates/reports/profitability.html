@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Tour profitability</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'reports:list' %}{{ query }}">All reports</a>
+</div>
+{% include "reports/_filters.html" %}
+
+{% if report %}
+<div class="profit-row">
+    <section class="panel">
+        <div class="panel-h"><h2>Revenue vs costs</h2></div>
+        <div class="waterfall">
+            <div class="wf"><span>Revenue</span><div class="track"><i class="rev" style="width:{{ report.totals.revenue_pct }}%"></i></div><b>{{ report.totals.revenue|money }}</b></div>
+            <div class="wf"><span>Supplier costs</span><div class="track"><i class="cost" style="width:{{ report.totals.supplier_pct }}%"></i></div><b>{{ report.totals.supplier_costs|money }}</b></div>
+            <div class="wf"><span>Other costs</span><div class="track"><i class="cost" style="width:{{ report.totals.other_pct }}%;background:#78716c"></i></div><b>{{ report.totals.other_costs|money }}</b></div>
+            <div class="wf"><span>Gross profit</span><div class="track"><i class="profit" style="width:{{ report.totals.profit_pct }}%"></i></div><b>{{ report.totals.profit|money }}</b></div>
+        </div>
+        <p class="muted" style="margin-top:.7rem">{% if filters.month %}{{ filters.month }}{% else %}All time{% endif %} · all departures</p>
+    </section>
+    <div class="stack">
+        <section class="panel">
+            <h2>Top profitable tours</h2>
+            {% for t in report.top %}
+            <p style="margin-top:.5rem"><a href="?tour={{ t.id }}{% if filters.month %}&month={{ filters.month }}{% endif %}">{{ t.name }}</a> · {{ t.margin }}%</p>
+            {% empty %}
+            <p class="muted" style="margin-top:.5rem">No tour revenue yet.</p>
+            {% endfor %}
+        </section>
+        <section class="panel">
+            <h2>Low margin tours</h2>
+            {% for t in report.low %}
+            <p style="margin-top:.5rem"><a href="?tour={{ t.id }}{% if filters.month %}&month={{ filters.month }}{% endif %}">{{ t.name }}</a> · {{ t.margin }}%</p>
+            {% empty %}
+            <p class="muted" style="margin-top:.5rem">No tour revenue yet.</p>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+
+<div class="panel" style="padding:0;margin-top:.85rem">
+    <table class="data">
+        <thead><tr><th>Tour</th><th>Revenue</th><th>Supplier costs</th><th>Other costs</th><th>Gross profit</th><th>Margin</th></tr></thead>
+        <tbody>
+        {% for t in report.tours %}
+            <tr>
+                <td><a href="?tour={{ t.id }}{% if filters.month %}&month={{ filters.month }}{% endif %}">{{ t.name }}</a></td>
+                <td>{{ t.revenue|money }}</td>
+                <td>{{ t.supplier_costs|money }}</td>
+                <td>{{ t.other_costs|money }}</td>
+                <td><strong>{{ t.profit|money }}</strong></td>
+                <td>{% if t.margin != None %}{{ t.margin }}%{% else %}—{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted" style="padding:1rem">No tour activity in this range.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if selected %}
+<section class="panel" style="margin-top:.85rem">
+    <div class="panel-h">
+        <h2>{{ selected.name }} breakdown</h2>
+        {% include "components/status_badge.html" with status=selected.status %}
+    </div>
+    <div class="waterfall">
+        <div class="wf"><span>Bookings revenue</span><div class="track"><i class="rev" style="width:{% if selected.revenue %}100{% else %}0{% endif %}%"></i></div><b>{{ selected.revenue|money }}</b></div>
+        {% for cat in selected.categories %}
+        <div class="wf"><span>{{ cat.label }}</span><div class="track"><i class="cost" style="width:{{ cat.pct }}%"></i></div><b>{{ cat.amount|money }}</b></div>
+        {% endfor %}
+        <div class="wf"><span>Final profit</span><div class="track"><i class="profit" style="width:{% if selected.revenue and selected.profit > 0 %}{{ selected.margin }}{% else %}0{% endif %}%"></i></div><b>{{ selected.profit|money }}</b></div>
+    </div>
+</section>
+{% endif %}
+{% else %}
+{% include "components/empty_state.html" with title="No profitability data" body="Link bookings and tour expenses to see margin by departure." %}
+{% endif %}
+{% endblock %}

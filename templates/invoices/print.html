@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="print-actions">
+    <button class="btn btn-warm" type="button" onclick="window.print()">Print</button>
+    <a class="btn btn-ghost" href="{% url 'invoices:detail' record.id %}">Back</a>
+</div>
+<div class="invoice-sheet">
+    <div class="inv-brand">{{ brand.name }} — Invoice</div>
+    <h1>{{ record.number }}</h1>
+    <p>{{ record.customer }} · {{ record.booking }}</p>
+    <p class="muted">Issued {{ record.issue }} · Due {{ record.due }}</p>
+    <p style="margin-top:1.2rem;font-size:1.4rem;font-weight:800">Total {{ record.total|money }}</p>
+    <p>Paid {{ record.paid|money }} · Remaining {{ record.remaining|money }}</p>
+</div>
+{% endblock %}

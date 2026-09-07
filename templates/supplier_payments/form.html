@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+
+{% if form %}
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Which bill</h2>
+            </div>
+        </header>
+        {% if bill %}
+        <div class="identity-chip">
+            <strong>{{ bill.supplier }}</strong>
+            <span>Expense <a href="{% url 'expenses:detail' bill.id %}">{{ bill.number }}</a> · due {{ bill.due }}</span>
+        </div>
+        <div class="metrics-4">
+            <div class="metric"><span class="tiny">Total</span><b>{{ bill.amount|money }}</b></div>
+            <div class="metric"><span class="tiny">Already paid</span><b>{{ bill.paid|money }}</b></div>
+            <div class="metric"><span class="tiny">Remaining</span><b>{{ bill.remaining|money }}</b></div>
+            <div class="metric"><span class="tiny">Due</span><b style="font-size:1rem">{{ bill.due }}</b></div>
+        </div>
+        {{ form.expense_id }}{{ form.expense_id.errors }}
+        {% else %}
+        {% include "components/form_field.html" with field=form.expense_id caption="Expense" %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>How you pay</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.amount caption="Payment amount" %}
+        {% if bill %}
+        <p class="err-inline" data-sp-error>Amount cannot exceed the remaining supplier balance of {{ bill.remaining|money }}.</p>
+        <p class="muted">Remaining after payment: <strong data-sp-after>{{ bill.remaining|money }}</strong></p>
+        {% endif %}
+        {% include "components/form_field.html" with field=form.payment_method caption="Method" %}
+        {% if preferred_label %}
+        <p class="muted">Preferred method: {{ preferred_label }}</p>
+        {% endif %}
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.payment_date caption="Payment date" %}
+            {% include "components/form_field.html" with field=form.reference_number caption="Transaction / reference number" %}
+        </div>
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+        {{ form.currency.as_hidden }}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">Record payment</button>
+        <a class="btn btn-ghost" href="{% url 'supplier_payments:list' %}">Cancel</a>
+    </div>
+</form>
+{% else %}
+{% url 'expenses:list' as expenses_url %}
+{% include "components/empty_state.html" with title="No open supplier bills" body="Create a supplier expense with a remaining balance before recording a payment." cta="View expenses" cta_url=expenses_url %}
+{% endif %}
+{% endblock %}

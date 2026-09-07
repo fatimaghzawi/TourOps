@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Accounts payable</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'expenses:list' %}">Expenses</a>
+        <a class="btn btn-warm" href="{% url 'supplier_payments:create' %}">Pay supplier</a>
+    </div>
+</div>
+{% include "finance/_nav.html" %}
+
+{% if report %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr><th>Expense</th><th>Supplier</th><th>Related</th><th>Due</th><th>Remaining</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for e in report.expenses %}
+            <tr class="{% if e.overdue %}is-overdue{% endif %}">
+                <td><a class="mono" href="{% url 'expenses:detail' e.id %}">{{ e.number }}</a></td>
+                <td>{% if e.supplier_id %}<a href="{% url 'suppliers:detail' e.supplier_id %}">{{ e.supplier }}</a>{% else %}{{ e.supplier }}{% endif %}</td>
+                <td>{{ e.related }}</td>
+                <td>{{ e.due }}{% if e.overdue %} <span class="badge b-bad">Overdue</span>{% endif %}</td>
+                <td><strong>{{ e.remaining|money }}</strong></td>
+                <td>{% include "components/status_badge.html" with status=e.status %}</td>
+                <td class="row-actions">
+                    {% url 'expenses:detail' e.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% if e.has_remaining %}
+                    <a class="ico-btn is-primary" href="{% url 'supplier_payments:create' %}?expense_id={{ e.id }}" title="Record payment" aria-label="Record payment">
+                        {% include "components/ico_mark.html" with icon="pay" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">
+                    {% url 'expenses:create' as expense_create_url %}
+                    {% include "components/empty_state.html" with title="No open payables" body="Supplier bills with a remaining balance will appear here." cta="New expense" cta_url=expense_create_url %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

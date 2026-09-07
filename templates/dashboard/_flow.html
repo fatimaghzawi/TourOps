@@ -1,0 +1,16 @@
+{% load tourops %}
+{% with flow=dash.summary.money_in|add_money:dash.summary.money_out %}
+<div class="dash-flow">
+    <div class="dash-lane in">
+        <span class="tiny">Money in</span>
+        <div class="amount">{{ dash.summary.money_in|money }}</div>
+        <div class="dash-meter"><i style="width:{{ dash.summary.money_in|width_pct:flow }}%"></i></div>
+    </div>
+    <div class="dash-vs">NET</div>
+    <div class="dash-lane out">
+        <span class="tiny">Money out</span>
+        <div class="amount">{{ dash.summary.money_out|money }}</div>
+        <div class="dash-meter"><i style="width:{{ dash.summary.money_out|width_pct:flow }}%"></i></div>
+    </div>
+</div>
+{% endwith %}

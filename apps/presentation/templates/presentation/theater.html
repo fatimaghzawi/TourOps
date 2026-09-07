@@ -1,0 +1,178 @@
+{% extends "presentation/shell.html" %}
+{% block title %}{{ presentation.scene.title }}{% endblock %}
+{% block theater %}
+<div class="theater" data-theater data-booked="{{ presentation.snapshot.booked|default:22 }}" data-capacity="{{ presentation.snapshot.capacity|default:30 }}" data-avail="{{ presentation.snapshot.available|default:8 }}" data-next="{% if presentation.has_next %}{% url 'presentation:jump' presentation.next_index %}{% endif %}" data-prev="{% if presentation.has_prev %}{% url 'presentation:jump' presentation.prev_index %}{% endif %}" data-exit="{% url 'presentation:stop' %}">
+    <header class="theater-top">
+        <nav class="dots" aria-label="Story stages">
+            {% for step in presentation.steps %}
+            <a class="dot is-{{ step.state }}" href="{% url 'presentation:jump' step.index %}" title="{{ step.label }}">
+                <span class="dot-mark"></span>
+                <span class="dot-label">{{ step.label }}</span>
+            </a>
+            {% endfor %}
+        </nav>
+        <div class="theater-meta">
+            <strong>Istanbul Escape</strong>
+            <span>Slide {{ presentation.index|add:1 }} of {{ presentation.total }}</span>
+            <a class="theater-btn" href="{% url 'presentation:stop' %}">Exit</a>
+        </div>
+    </header>
+
+    <main class="theater-stage">
+        <section class="story">
+            <p class="kicker">{{ presentation.scene.kicker }}</p>
+            <h1>{{ presentation.scene.title }}</h1>
+            <p class="lede">{{ presentation.scene.lede }}</p>
+            <div class="visual is-{{ presentation.scene.visual }} is-{{ presentation.scene.id }}" aria-hidden="true">
+                {% if presentation.scene.visual == "trio" %}
+                <div class="cast">
+                    <article class="cast-card is-hotel"><span>Hotel</span><strong>Bosphorus Hotel</strong><em>Sultanahmet · 4★</em></article>
+                    <article class="cast-card is-coach"><span>Transport</span><strong>Istanbul Transport</strong><em>Sprinter · 16 seats</em></article>
+                    <article class="cast-card is-guide"><span>Guide</span><strong>Istanbul Local Guide</strong><em>EN / TR · 12 yrs</em></article>
+                </div>
+                {% elif presentation.scene.visual == "hotel" %}
+                <article class="sheet">
+                    <p class="sheet-kicker">Supplier file</p>
+                    <h2>Bosphorus Hotel</h2>
+                    <ul>
+                        <li>30% on confirmation</li>
+                        <li>Balance 14 days before arrival</li>
+                        <li>Garanti BBVA · bank transfer</li>
+                    </ul>
+                </article>
+                {% elif presentation.scene.visual == "ingredients" %}
+                <div class="tiles">
+                    <span>Accommodation · PER_GROUP $9,000</span>
+                    <span>Airport transfer · PER_GROUP $1,500</span>
+                    <span>Full-day coach · PER_GROUP $3,000</span>
+                    <span>City tour · PER_GROUP $2,000</span>
+                </div>
+                {% elif presentation.scene.visual == "package" %}
+                <article class="product">
+                    <p>Package</p>
+                    <h2>Istanbul Escape</h2>
+                    <p>6 days · $1,000 / person · reuse in October</p>
+                    <p class="product-arrow">becomes a dated tour →</p>
+                    <h3>15–20 Sep · 30 seats</h3>
+                </article>
+                {% elif presentation.scene.visual == "tour" %}
+                <div class="cal">
+                    <div class="cal-range"><b>15</b><span>to</span><b>20</b><em>September</em></div>
+                    <div class="seat-strip" data-seats></div>
+                    <p class="cal-note">{% if presentation.scene.id == "tour-ready" %}Door open · eight seats remain for Maya{% else %}Door closed until suppliers confirm{% endif %}</p>
+                </div>
+                {% elif presentation.scene.visual == "stamps" %}
+                <div class="stamps">
+                    <div class="stamp"><i></i>Hotel</div>
+                    <div class="stamp"><i></i>Coach</div>
+                    <div class="stamp"><i></i>Guide</div>
+                </div>
+                {% elif presentation.scene.visual == "letter" %}
+                <article class="letter">
+                    <p>To: groups@bosphorushotel.example</p>
+                    <p>Re: Istanbul Escape · 15–20 Sep · 15 twins</p>
+                    <p class="letter-body">Please confirm the block. Status in TourOps stays REQUESTED until a human stamps CONFIRMED with a number.</p>
+                </article>
+                {% elif presentation.scene.visual == "gate" %}
+                <div class="gate">
+                    <p>BOOKING REFUSED</p>
+                    <span>Waiting on Istanbul Transport</span>
+                </div>
+                {% elif presentation.scene.visual == "maya" %}
+                <blockquote class="maya">
+                    <p>Hi — do you have two seats for Istanbul in September?</p>
+                    <footer>Maya Hassan · not in the file yet</footer>
+                </blockquote>
+                {% elif presentation.scene.visual == "booking" %}
+                <article class="sheet">
+                    <p class="sheet-kicker">Confirm & invoice</p>
+                    <h2>Maya Hassan · 2 travelers</h2>
+                    <p>$1,000 × 2 = $2,000 · tax off</p>
+                    <p>Pending would not take seats. Confirm does.</p>
+                </article>
+                {% elif presentation.scene.visual == "seats" %}
+                <div class="seat-board">
+                    <div class="seat-strip is-lg" data-seats></div>
+                    <p><span data-theater-live>22/30 until Maya confirms</span></p>
+                </div>
+                {% elif presentation.scene.visual == "overbook" %}
+                <div class="overbook">
+                    <p>Available <b data-avail>6</b></p>
+                    <p class="overbook-ask">Party of 10</p>
+                    <p class="gate-mini">Not enough seats</p>
+                </div>
+                {% elif presentation.scene.visual == "role" %}
+                <div class="roles">
+                    <article class="role is-yes"><span>Agent</span><strong>Book Maya</strong><em>allowed</em></article>
+                    <article class="role is-no"><span>Agent</span><strong>Open receivables</strong><em>403</em></article>
+                    <article class="role is-yes"><span>Accountant</span><strong>Collect $2,000</strong><em>allowed</em></article>
+                </div>
+                {% elif presentation.scene.visual == "invoice" %}
+                <article class="sheet is-invoice">
+                    <p>INV · Maya Hassan</p>
+                    <h2>$2,000.00</h2>
+                    <p>Remaining due = max(total − paid, 0)</p>
+                    <p>One live invoice. No stacked lives.</p>
+                </article>
+                {% elif presentation.scene.visual == "pay" %}
+                <div class="pay-beats">
+                    <span class="pill">UNPAID</span>
+                    <span class="arrow">$500</span>
+                    <span class="pill is-mid">PARTIALLY_PAID</span>
+                    <span class="arrow">rest</span>
+                    <span class="pill is-ok">PAID</span>
+                </div>
+                {% elif presentation.scene.visual == "receipt" %}
+                <article class="sheet">
+                    <p class="sheet-kicker">Receipt</p>
+                    <h2>Child of the payment</h2>
+                    <p>Void the payment, the receipt goes with it.</p>
+                    <p>Print. Do not invent a second total.</p>
+                </article>
+                {% elif presentation.scene.visual == "costs" %}
+                <div class="costs">
+                    <div><b>$24,000</b><span>customer revenue</span></div>
+                    <div><b>$17,500</b><span>supplier + other costs</span></div>
+                    <div class="is-rest"><b>$6,500</b><span>only after Maya pays</span></div>
+                </div>
+                {% elif presentation.scene.visual == "payout" %}
+                <div class="payout">
+                    <div class="rail is-in">Maya $2,000 stays PAID</div>
+                    <div class="rail is-out">Hotel expense $9,000 → paid</div>
+                </div>
+                {% elif presentation.scene.visual == "waterfall" %}
+                <div class="fall">
+                    <i style="--h:100%"><span>Revenue</span><b>24k</b></i>
+                    <i style="--h:73%"><span>Costs</span><b>17.5k</b></i>
+                    <i class="is-ok" style="--h:27%"><span>Profit</span><b>6.5k</b></i>
+                </div>
+                {% elif presentation.scene.visual == "recap" %}
+                <div class="recap-line">
+                    <span>Supplier</span><i></i><span>Service</span><i></i><span>Package</span><i></i><span>Tour</span><i></i><span>Booking</span><i></i><span>Profit</span>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <aside class="edge">
+            <p class="edge-label">Edge case</p>
+            <h2>{{ presentation.scene.edge.title }}</h2>
+            <p>{{ presentation.scene.edge.body }}</p>
+        </aside>
+    </main>
+
+    <footer class="theater-nav">
+        {% if presentation.has_prev %}
+        <a class="theater-btn" data-theater-prev href="{% url 'presentation:jump' presentation.prev_index %}">Back</a>
+        {% else %}
+        <span class="theater-btn is-ghost">Back</span>
+        {% endif %}
+        <span class="theater-count">Slide {{ presentation.index|add:1 }} of {{ presentation.total }}</span>
+        {% if presentation.has_next %}
+        <a class="theater-btn is-go" data-theater-next href="{% url 'presentation:jump' presentation.next_index %}">Next</a>
+        {% else %}
+        <a class="theater-btn is-go" href="{% url 'presentation:stop' %}">Finish</a>
+        {% endif %}
+    </footer>
+</div>
+{% endblock %}

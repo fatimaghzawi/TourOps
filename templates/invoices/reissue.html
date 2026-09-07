@@ -1,0 +1,33 @@
+{% extends "base_invoices.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Reissue {{ record.number }}</h1>
+        <p class="muted">Cancel this invoice and issue a new one from booking {{ record.booking }}.</p>
+    </div>
+</div>
+
+<div class="panel" style="max-width:640px">
+    {% if record.can_reissue %}
+    <p>This does not refund money. Any collected payments must already be refunded to zero before a live invoice can be cancelled.</p>
+    <dl class="kv">
+        <dt>Customer</dt><dd>{{ record.customer }}</dd>
+        <dt>Booking</dt><dd>{{ record.booking }}</dd>
+        <dt>Current invoice</dt><dd>{{ record.number }} · {{ record.status }}</dd>
+        <dt>Paid</dt><dd>{{ record.paid|money }}</dd>
+        <dt>Remaining</dt><dd>{{ record.remaining|money }}</dd>
+    </dl>
+    <form method="post">
+        {% csrf_token %}
+        <div class="actions" style="margin-top:1rem">
+            <a class="btn btn-ghost" href="{% url 'invoices:detail' record.id %}">Back</a>
+            <button class="btn btn-warm" type="submit">Cancel and issue a new invoice</button>
+        </div>
+    </form>
+    {% else %}
+    <p>This invoice still has collected money. Record refunds first, then reissue.</p>
+    <p><a class="btn btn-ghost" href="{% url 'invoices:detail' record.id %}">Back to invoice</a></p>
+    {% endif %}
+</div>
+{% endblock %}

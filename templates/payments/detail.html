@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="tiny">{{ record.number }}</p>
+        <h1>{{ record.amount|money }}</h1>
+        <p>{{ record.customer }} · {{ record.invoice }} · {{ record.date }}</p>
+    </div>
+    <div class="actions">
+        {% if receipt_id %}
+        {% url 'receipts:detail' receipt_id as receipt_url %}
+        {% include "components/ico_btn.html" with href=receipt_url title="Open receipt" icon="receipt" %}
+        {% endif %}
+        {% if record.status == 'COMPLETED' %}
+        <a class="ico-btn is-primary" href="{% url 'refunds:create' %}?payment_id={{ record.id }}" title="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}" aria-label="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}">
+            {% include "components/ico_mark.html" with icon="refund" %}
+        </a>
+        {% endif %}
+        {% if record.status != 'VOIDED' %}
+        {% url 'payments:void' record.id as void_url %}
+        {% include "components/ico_btn.html" with action=void_url title="Void payment" icon="delete" danger=1 confirm="This is not a refund. The payment comes off the invoice and the original stay on the ledger as voided." confirm_title="Take this off the ledger?" confirm_ok="Void payment" %}
+        {% endif %}
+    </div>
+</div>
+<div class="two-col">
+    <section class="panel">
+        <dl class="kv">
+            <dt>Method</dt><dd>{{ record.method|labelize }}</dd>
+            <dt>Reference</dt><dd class="mono">{{ record.ref }}</dd>
+            <dt>Status</dt><dd>{% include "components/status_badge.html" with status=record.status %}</dd>
+        </dl>
+    </section>
+    <section class="panel">
+        <h2>Net received</h2>
+        <p class="ledger-in" style="margin-top:.5rem">Payment +{{ record.amount|money }}</p>
+    </section>
+</div>
+{% if refunds %}
+<section class="panel" style="padding:0;margin-top:1rem">
+    <div class="panel-h" style="padding:1rem 1rem 0"><h2>Refunds</h2></div>
+    <table class="data">
+        <thead><tr><th>Refund</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in refunds %}
+            <tr>
+                <td class="mono"><a href="{% url 'refunds:detail' r.id %}">{{ r.refund_number }}</a></td>
+                <td><strong>{{ r.amount|money }}</strong></td>
+                <td>{% include "components/status_badge.html" with status=r.status %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="callout callout-info" style="margin-bottom:1rem;display:flex;gap:.65rem;align-items:flex-start">
+    <span aria-hidden="true" style="font-weight:700">ℹ</span>
+    <span>Recording expense moves profit. Paying later moves cash only.</span>
+</div>
+
+<div class="page-head">
+    <div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;margin-bottom:.35rem">
+            <h1 class="mono" style="font-size:1.45rem">{{ record.number }}</h1>
+            {% include "components/status_badge.html" with status=record.status %}
+            <strong style="font-size:1.35rem;letter-spacing:-.02em">{{ record.amount|money }}</strong>
+        </div>
+        <p class="muted" style="display:flex;flex-wrap:wrap;gap:1rem">
+            <span>Supplier <strong>{{ record.supplier }}</strong></span>
+            <span>Tour <strong>{{ record.related }}</strong></span>
+        </p>
+    </div>
+    <div class="actions">
+        {% url 'expenses:edit' record.id as edit_url %}
+        {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+        {% if record.has_remaining %}
+        <a class="ico-btn is-primary" href="{% url 'supplier_payments:create' %}?expense_id={{ record.id }}" title="Record payment" aria-label="Record payment">
+            {% include "components/ico_mark.html" with icon="pay" %}
+        </a>
+        {% endif %}
+        {% if not record.has_payments %}
+        {% url 'expenses:delete' record.id as delete_url %}
+        {% include "components/ico_btn.html" with action=delete_url title="Delete" icon="delete" danger=1 confirm="This expense leaves the books. Linked supplier payments should already be clear." confirm_title="Strike this expense?" confirm_ok="Delete expense" %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="two-col">
+    <section class="panel">
+        <div class="form-grid" style="margin-top:.2rem">
+            <label>Scope
+                <input class="field" value="{{ record.scope }}" readonly>
+            </label>
+            <label>Category
+                <input class="field" value="{{ record.category }}" readonly>
+            </label>
+            <label style="grid-column:1/-1">Description
+                <input class="field" value="{{ record.description|default:'' }}" readonly>
+            </label>
+            <label>Expense date
+                <input class="field" value="{{ record.expense_date_display }}" readonly>
+            </label>
+            <label>Due date
+                <input class="field" value="{{ record.due }}" readonly>
+            </label>
+            <label>Amount
+                <input class="field" value="{{ record.amount }}" readonly>
+            </label>
+            <label>Currency
+                <input class="field" value="{{ record.currency }}" readonly>
+            </label>
+        </div>
+    </section>
+
+    <aside class="panel">
+        <h2>Summary</h2>
+        <dl class="kv" style="margin-top:.75rem">
+            <dt>Amount</dt><dd>{{ record.amount|money }}</dd>
+            <dt>Paid</dt><dd>{{ record.paid|money }}</dd>
+            <dt>Remaining</dt><dd><strong>{{ record.remaining|money }}</strong></dd>
+            <dt>Status</dt><dd>{% include "components/status_badge.html" with status=record.status %}</dd>
+        </dl>
+        <p class="callout callout-info" style="margin-top:1rem">payment_status is calculated — not a dropdown.</p>
+    </aside>
+</div>
+
+<section class="panel" style="margin-top:1rem;padding:0">
+    <div class="panel-h" style="padding:1rem 1.1rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+        <h2>Payments</h2>
+        {% if record.has_remaining %}
+        <a class="ico-btn is-primary" href="{% url 'supplier_payments:create' %}?expense_id={{ record.id }}" title="Record payment" aria-label="Record payment">
+            {% include "components/ico_mark.html" with icon="pay" %}
+        </a>
+        {% endif %}
+    </div>
+    <table class="data">
+        <thead>
+            <tr><th>Payment ID</th><th>Payment date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+        {% for sp in record.payments %}
+            <tr>
+                <td><a class="mono" href="{% url 'supplier_payments:detail' sp.id %}">{{ sp.number }}</a></td>
+                <td>{{ sp.date }}</td>
+                <td>{{ sp.amount|money }}</td>
+                <td>{{ sp.method }}</td>
+                <td class="mono">{{ sp.ref|default:"—" }}</td>
+                <td>{{ sp.notes|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6"><p class="muted" style="padding:.5rem 0">No payments recorded yet.</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<div style="margin-top:1rem">
+    {% include "attachments/_panel.html" %}
+</div>
+{% endblock %}

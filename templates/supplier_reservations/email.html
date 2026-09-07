@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+.email-sheet { max-width: 760px; }
+.email-body { white-space: pre-wrap; font-family: var(--font); line-height: 1.55; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 1.1rem 1.2rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Email supplier</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'supplier_reservations:detail' record_id %}">Back</a>
+    </div>
+</div>
+
+<form method="post" class="ops-form email-sheet">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Message</h2>
+                <p class="muted">To {{ email.to }}</p>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.kind caption="Email type" %}
+        {% include "components/form_field.html" with field=form.subject %}
+        {% include "components/form_field.html" with field=form.body caption="Message" %}
+        {% include "components/form_field.html" with field=form.extra_note caption="Additional note" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-ghost" name="preview" value="1" type="submit">Preview / regenerate</button>
+        <button class="btn btn-ghost" type="button" data-copy-email>Copy</button>
+        <button class="btn btn-ghost" name="copy" value="1" type="submit">Mark as generated</button>
+        <a class="btn btn-ghost" href="{{ mailto }}">Open mail client</a>
+        <button class="btn btn-warm" name="send" value="1" type="submit">Send email</button>
+    </div>
+</form>
+
+<section class="panel email-sheet" style="margin-top:1rem">
+    <h2 style="margin:.3rem 0 .8rem">{{ email.subject }}</h2>
+    <pre class="email-body" data-email-copy>To: {{ email.to }}
+Subject: {{ email.subject }}
+
+{{ email.body }}</pre>
+</section>
+{% endblock %}

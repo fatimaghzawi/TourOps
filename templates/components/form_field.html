@@ -1,0 +1,8 @@
+<label class="form-field{% if field.field.required %} is-required{% endif %}{% if wide %} is-wide{% endif %}">
+    <span class="form-label">
+        {{ caption|default:field.label }}
+        {% if field.field.required %}<span class="req" title="Required">*</span>{% endif %}
+    </span>
+    {{ field }}
+    {{ field.errors }}
+</label>

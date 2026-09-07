@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ record.number }}</h1>
+        <p>
+            {% if record.customer_id %}<a href="{% url 'customers:detail' record.customer_id %}">{{ record.customer }}</a>{% else %}{{ record.customer }}{% endif %}
+            · {{ record.product }} · {{ record.dates }}
+        </p>
+    </div>
+    <div class="actions">
+        {% include "components/status_badge.html" with status=record.status %}
+        {% if nav.ops and record.status == 'PENDING' %}
+        <form method="post" action="{% url 'bookings:confirm' record.id %}">{% csrf_token %}<button class="btn btn-ok" type="submit">Confirm &amp; invoice</button></form>
+        {% endif %}
+        {% if nav.ops %}
+        {% if record.status == 'PENDING' or record.status == 'CONFIRMED' or record.status == 'COMPLETED' %}
+        <form method="post" action="{% url 'bookings:cancel' record.id %}" data-confirm="{{ record.number }} will go back to open seats. Any unrefunded money still blocks a paid booking." data-confirm-title="Walk this booking back?" data-confirm-ok="Cancel booking">{% csrf_token %}<button class="btn btn-ghost" type="submit">Cancel</button></form>
+        {% endif %}
+        <a class="btn btn-ghost" href="{% url 'bookings:list' %}">Back</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="metrics-4">
+    <div class="metric"><span class="tiny">Travelers</span><b>{{ record.travelers_count }}</b></div>
+    <div class="metric"><span class="tiny">Booking total</span><b>{{ record.total|money }}</b></div>
+    <div class="metric"><span class="tiny">Still to collect</span><b>{% if invoice %}{{ remaining|money }}{% else %}—{% endif %}</b></div>
+    <div class="metric"><span class="tiny">Payment</span><b style="font-size:1rem">{% include "components/status_badge.html" with status=record.pay %}</b></div>
+</div>
+
+<section class="money-desk" style="margin-top:1rem">
+    <div class="panel">
+        <h2>Invoice</h2>
+        {% if invoice %}
+        <dl class="kv" style="margin-top:.7rem">
+            <dt>Number</dt>
+            <dd>
+                {% if nav.finance %}
+                <a class="mono" href="{% url 'invoices:detail' invoice.id %}">{{ invoice.invoice_number }}</a>
+                {% else %}
+                <span class="mono">{{ invoice.invoice_number }}</span>
+                {% endif %}
+            </dd>
+            <dt>Status</dt><dd>{% include "components/status_badge.html" with status=invoice.status %}</dd>
+            <dt>Total</dt><dd>{{ invoice.total_amount|money }}</dd>
+            <dt>Paid</dt><dd>{{ invoice.paid_amount|money }}</dd>
+            <dt>Remaining</dt><dd><strong>{{ invoice.remaining_amount|money }}</strong></dd>
+        </dl>
+        {% elif record.status == 'CONFIRMED' or record.status == 'COMPLETED' %}
+        <p class="muted" style="margin-top:.7rem">No invoice yet.</p>
+        {% if nav.ops %}
+        <form method="post" action="{% url 'bookings:invoice' record.id %}" style="margin-top:.8rem">{% csrf_token %}
+            <button class="btn btn-warm" type="submit">Create invoice</button>
+        </form>
+        {% endif %}
+        {% else %}
+        <p class="muted" style="margin-top:.7rem">Confirm the booking to create the invoice and collect payment here.</p>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <h2>Collect payment</h2>
+        {% if can_pay and nav.ops %}
+        <form method="post" action="{% url 'bookings:pay' record.id %}">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=pay_form.amount %}
+            {% include "components/form_field.html" with field=pay_form.method %}
+            {% include "components/form_field.html" with field=pay_form.reference_number %}
+            <p class="muted">After this payment: <strong data-pay-after>{{ remaining|money }}</strong></p>
+            <p class="err-inline" data-pay-error>Amount cannot exceed the remaining balance.</p>
+            <button class="btn btn-warm" type="submit">Save payment</button>
+        </form>
+        {% elif can_pay and nav.finance %}
+        <p class="muted" style="margin-top:.7rem">Remaining <strong>{{ remaining|money }}</strong>.</p>
+        {% url 'invoices:detail' invoice.id as pay_url %}
+        {% include "components/ico_btn.html" with href=pay_url title="Record payment" icon="pay" primary=1 %}
+        {% elif invoice and invoice.status != 'CANCELLED' %}
+        <p class="muted" style="margin-top:.7rem">This booking is fully collected.</p>
+        {% else %}
+        <p class="muted" style="margin-top:.7rem">Nothing to collect yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if payments %}
+<section class="panel" style="padding:0;margin-top:1rem">
+    <div class="panel-h" style="padding:1rem 1rem 0"><h2>Payments &amp; receipts</h2></div>
+    <table class="data">
+        <thead><tr><th>Payment</th><th>Amount</th><th>Method</th><th>Reference</th><th>Receipt</th>{% if nav.finance %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+        {% for p in payments %}
+            <tr>
+                <td class="mono">{% if nav.finance %}<a href="{% url 'payments:detail' p.id %}">{{ p.payment_number }}</a>{% else %}{{ p.payment_number }}{% endif %}</td>
+                <td><strong>{{ p.amount|money }}</strong></td>
+                <td>{{ p.payment_method|labelize }}</td>
+                <td class="mono">{{ p.reference_number|default:"—" }}</td>
+                <td>
+                    {% if p.receipt %}
+                    <a class="mono" href="{% url 'receipts:detail' p.receipt.id %}">{{ p.receipt.receipt_number }}</a>
+                    {% else %}—
+                    {% endif %}
+                </td>
+                {% if nav.finance %}
+                <td class="row-actions">
+                    {% if p.status == 'COMPLETED' %}
+                    <a class="ico-btn is-primary" href="{% url 'refunds:create' %}?payment_id={{ p.id }}" title="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}" aria-label="{% if nav.is_owner %}Issue refund{% else %}Request refund{% endif %}">
+                        {% include "components/ico_mark.html" with icon="refund" %}
+                    </a>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+{% if record.notes %}
+<section class="panel" style="margin-top:1rem">
+    <h2>Notes</h2>
+    <p style="margin-top:.6rem">{{ record.notes }}</p>
+</section>
+{% endif %}
+<section class="panel" style="padding:0;margin-top:1rem">
+    <table class="data">
+        <thead><tr><th>Name</th><th>Passport</th><th>Nationality</th><th>Room</th></tr></thead>
+        <tbody>
+        {% for t in record.travelers %}
+            <tr>
+                <td>{{ t.name }}</td>
+                <td class="mono">{{ t.passport|default:"—" }}</td>
+                <td>{{ t.nationality|default:"—" }}</td>
+                <td>{% if t.room_number %}{{ t.room_number }}{% if t.room_type %} · {{ t.room_type }}{% endif %}{% else %}Unassigned{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4"><p class="muted" style="margin:.8rem">No travelers on this booking.</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

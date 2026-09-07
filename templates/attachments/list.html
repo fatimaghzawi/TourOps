@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Attachments</h1>
+    </div>
+</div>
+<form class="filter-bar" method="get" data-autosubmit>
+    <label>Record type
+        <select class="field" name="entity_type">
+            <option value="">All types</option>
+            {% for value, label in entity_choices %}
+            <option value="{{ value }}" {% if filters.entity_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Record ID
+        <input class="field" name="entity_id" value="{{ filters.entity_id }}" placeholder="Optional" maxlength="24" spellcheck="false">
+    </label>
+    <label>Category
+        <select class="field" name="category">
+            <option value="">All categories</option>
+            {% for value, label in category_choices %}
+            <option value="{{ value }}" {% if filters.category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <div class="filter-actions">
+        {% if filters.entity_type or filters.entity_id or filters.category %}
+        <a class="btn btn-ghost" href="{% url 'attachments:list' %}">Clear</a>
+        {% endif %}
+    </div>
+</form>
+<div class="two-col">
+    <section class="panel" style="padding:0">
+        <div class="panel-h" style="padding:1rem 1.05rem 0">
+            <h2>Files</h2>
+        </div>
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Linked to</th>
+                        <th>Category</th>
+                        <th>Uploaded</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in attachments %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'attachments:download' item.id %}"><strong>{{ item.file_name }}</strong></a>
+                            {% if item.notes %}<small class="muted" style="display:block">{{ item.notes }}</small>{% endif %}
+                        </td>
+                        <td>{{ item.entity_label }}</td>
+                        <td>{{ item.category_label }}</td>
+                        <td>{{ item.created_display }}</td>
+                        <td class="row-actions">
+                            {% url 'attachments:delete' item.id as delete_url %}
+                            {% include "components/ico_btn.html" with action=delete_url title="Remove" icon="delete" danger=1 confirm="This file leaves the record. Download it first if you still need a copy." confirm_title="Clear this file?" confirm_ok="Remove it" hidden_name="next" hidden_value=request.get_full_path %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            {% include "components/empty_state.html" with title="No files yet" body="Upload a receipt or contract using the form on the right." %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="panel">
+        <h2>Upload a file</h2>
+        <form method="post" action="{% url 'attachments:upload' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            {{ form.non_field_errors }}
+            {% include "components/form_field.html" with field=form.entity_type %}
+            {% include "components/form_field.html" with field=form.entity_id %}
+            {% include "components/form_field.html" with field=form.category %}
+            {% include "components/form_field.html" with field=form.upload %}
+            {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+            <div class="ops-form-foot" style="position:static;margin-top:.85rem">
+                <button class="btn btn-warm" type="submit">Upload</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

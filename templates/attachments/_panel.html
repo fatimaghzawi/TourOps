@@ -1,0 +1,49 @@
+<section class="panel">
+    <div class="panel-h">
+        <h2>Attachments</h2>
+    </div>
+    {% if attachments %}
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+                <tr><th>File</th><th>Category</th><th>Uploaded</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for item in attachments %}
+                <tr>
+                    <td>
+                        <a href="{% url 'attachments:download' item.id %}"><strong>{{ item.file_name }}</strong></a>
+                        {% if item.notes %}<small class="muted" style="display:block">{{ item.notes }}</small>{% endif %}
+                    </td>
+                    <td>{{ item.category_label }}</td>
+                    <td>{{ item.created_display }}</td>
+                    <td class="row-actions">
+                        <form method="post" action="{% url 'attachments:delete' item.id %}" class="ico-form" data-confirm="Remove {{ item.file_name }} from this record?" data-confirm-title="Clear this file?" data-confirm-ok="Remove it">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button class="ico-btn is-danger" type="submit" title="Remove" aria-label="Remove">
+                                {% include "components/ico_mark.html" with icon="delete" %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">No files attached yet.</p>
+    {% endif %}
+    {% if upload_form %}
+    <form method="post" action="{% url 'attachments:upload' %}" enctype="multipart/form-data" class="file-upload" style="margin-top:1rem">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        {{ upload_form.entity_type }}
+        {{ upload_form.entity_id }}
+        <label>{{ upload_form.category.label }}{{ upload_form.category }}{{ upload_form.category.errors }}</label>
+        <label>{{ upload_form.upload.label }}{{ upload_form.upload }}{{ upload_form.upload.errors }}</label>
+        <label>{{ upload_form.notes.label }}{{ upload_form.notes }}{{ upload_form.notes.errors }}</label>
+        <button class="btn btn-warm" type="submit">Attach</button>
+    </form>
+    {% endif %}
+</section>

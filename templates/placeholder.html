@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+    <span class="owner-pill">{{ module_owner }}</span>
+</section>
+
+<div class="card">
+    <h2>Ready for implementation</h2>
+    <p>
+        Routing, permissions, and the MongoDB document contract are in place.
+        Implement this feature using the repository → service → view flow.
+        Do not add Django ORM models for this collection.
+    </p>
+    <ul class="checklist">
+        <li>Document contract: <code>apps/{{ module_name }}/schemas.py</code></li>
+        <li>Repository: <code>apps/{{ module_name }}/repositories.py</code></li>
+        <li>Service: <code>apps/{{ module_name }}/services.py</code></li>
+        <li>HTML views: <code>apps/{{ module_name }}/views.py</code></li>
+        <li>JSON API: <code>apps/{{ module_name }}/api.py</code></li>
+    </ul>
+</div>
+{% endblock %}

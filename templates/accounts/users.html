@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Staff directory</h1>
+    </div>
+    <a class="btn btn-warm" href="{% url 'accounts:user_create' %}">New user</a>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>
+                    <div class="row-main">
+                        <span class="avatar">{{ u.initials }}</span>
+                        <div>
+                            <a href="{% url 'accounts:user_detail' u.id %}"><strong>{{ u.name }}</strong></a>
+                            <small>{{ u.email }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ u.role_label }}</td>
+                <td>{% include "components/status_badge.html" with status=u.status %}</td>
+                <td>{{ u.last }}</td>
+                <td class="row-actions">
+                    {% url 'accounts:user_detail' u.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" class="muted" style="padding:1rem">No staff users yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

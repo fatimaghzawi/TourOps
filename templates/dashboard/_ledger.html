@@ -1,0 +1,23 @@
+{% load tourops %}
+<section class="dash-card is-flush">
+    <div class="panel-h">
+        <h2>Recent cash</h2>
+        <a class="tiny" href="{% url 'reports:transactions' %}">Full ledger</a>
+    </div>
+    <div class="dash-moves">
+        {% for row in dash.recent %}
+        <div class="dash-move {% if row.direction == 'OUT' %}is-out{% endif %}">
+            <i></i>
+            <div>
+                <strong>{{ row.kind|labelize }} · {{ row.number }}</strong>
+                <small>{{ row.party }} · {{ row.date }}</small>
+            </div>
+            <span class="{% if row.direction == 'IN' %}tx-in{% else %}tx-out{% endif %}">
+                {% if row.direction == 'IN' %}+{% else %}−{% endif %}{{ row.amount|money }}
+            </span>
+        </div>
+        {% empty %}
+        <p class="muted" style="padding:1rem 1.05rem">No payments, refunds, or supplier payouts yet.</p>
+        {% endfor %}
+    </div>
+</section>

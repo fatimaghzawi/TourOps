@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>New booking</h1>
+    </div>
+</div>
+<form method="post" class="ops-form book-flow" data-book-flow novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <nav class="book-path" aria-label="Booking steps">
+        <button type="button" data-book-tab="1" class="is-on">
+            <span class="book-path-n">1</span>
+            <strong>Who books</strong>
+        </button>
+        <button type="button" data-book-tab="2">
+            <span class="book-path-n">2</span>
+            <strong>Departure</strong>
+        </button>
+        <button type="button" data-book-tab="3">
+            <span class="book-path-n">3</span>
+            <strong>Travelers</strong>
+        </button>
+        <button type="button" data-book-tab="4">
+            <span class="book-path-n">4</span>
+            <strong>Save</strong>
+        </button>
+    </nav>
+
+    <section class="form-card form-card-accent is-on" data-book-stage="1">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Who is booking</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.customer_id caption="Customer" %}
+        <p><a href="{% url 'customers:create' %}">Create customer</a></p>
+    </section>
+
+    <section class="form-card" data-book-stage="2">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Which departure</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.tour_id caption="Tour" %}
+    </section>
+
+    <section class="form-card" data-book-stage="3">
+        <header class="form-card-h">
+            <span class="form-step">3</span>
+            <div>
+                <h2>Travelers</h2>
+            </div>
+        </header>
+        <div class="guest-list" data-guest-list>
+            {% for row in traveler_rows %}
+            {% if not row.hidden %}
+            <article class="guest-card" data-guest data-index="{{ row.index }}">
+                <div class="guest-card-h">
+                    <span class="guest-seat" data-guest-n>{{ row.n }}</span>
+                    <strong>Traveler</strong>
+                    <button class="btn btn-ghost" type="button" data-guest-remove>Remove</button>
+                </div>
+                <div class="form-row">
+                    <label class="form-field is-required">
+                        <span class="form-label">First name <span class="req" title="Required">*</span></span>
+                        <input class="field" data-name="first" name="traveler_{{ row.index }}_first" value="{{ row.first }}" autocomplete="given-name">
+                    </label>
+                    <label class="form-field is-required">
+                        <span class="form-label">Last name <span class="req" title="Required">*</span></span>
+                        <input class="field" data-name="last" name="traveler_{{ row.index }}_last" value="{{ row.last }}" autocomplete="family-name">
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label class="form-field">
+                        <span class="form-label">Passport</span>
+                        <input class="field" data-name="passport" name="traveler_{{ row.index }}_passport" value="{{ row.passport }}" autocomplete="off">
+                    </label>
+                    <label class="form-field">
+                        <span class="form-label">Nationality</span>
+                        <input class="field" data-name="nationality" name="traveler_{{ row.index }}_nationality" value="{{ row.nationality }}" autocomplete="country-name">
+                    </label>
+                </div>
+            </article>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <template data-guest-template>
+            <article class="guest-card" data-guest data-index="0">
+                <div class="guest-card-h">
+                    <span class="guest-seat" data-guest-n>01</span>
+                    <strong>Traveler</strong>
+                    <button class="btn btn-ghost" type="button" data-guest-remove>Remove</button>
+                </div>
+                <div class="form-row">
+                    <label class="form-field is-required">
+                        <span class="form-label">First name <span class="req" title="Required">*</span></span>
+                        <input class="field" data-name="first" autocomplete="given-name">
+                    </label>
+                    <label class="form-field is-required">
+                        <span class="form-label">Last name <span class="req" title="Required">*</span></span>
+                        <input class="field" data-name="last" autocomplete="family-name">
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label class="form-field">
+                        <span class="form-label">Passport</span>
+                        <input class="field" data-name="passport" autocomplete="off">
+                    </label>
+                    <label class="form-field">
+                        <span class="form-label">Nationality</span>
+                        <input class="field" data-name="nationality" autocomplete="country-name">
+                    </label>
+                </div>
+            </article>
+        </template>
+        <button class="btn btn-ghost guest-add" type="button" data-guest-add>Add another traveler</button>
+    </section>
+
+    <section class="form-card" data-book-stage="4">
+        <header class="form-card-h">
+            <span class="form-step">4</span>
+            <div>
+                <h2>Wrap up</h2>
+            </div>
+        </header>
+        <div class="book-recap" aria-live="polite">
+            <b data-book-customer>Customer —</b>
+            <b data-book-tour>Tour —</b>
+            <b data-book-party>Travelers —</b>
+        </div>
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+    </section>
+
+    <p class="err-inline" data-book-error></p>
+    <div class="ops-form-foot">
+        <button class="btn btn-ghost" type="button" data-book-prev hidden>Back</button>
+        <button class="btn btn-warm" type="button" data-book-next>Continue</button>
+        <button class="btn btn-ok" type="submit" name="action" value="confirm" data-book-save>Save and confirm</button>
+        <button class="btn btn-ghost" type="submit" name="action" value="pending" data-book-save>Save as pending</button>
+        <a class="btn btn-ghost push" href="{% url 'bookings:list' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const flow = document.querySelector("[data-book-flow]");
+    if (!flow) return;
+    const stages = Array.from(flow.querySelectorAll("[data-book-stage]"));
+    const tabs = Array.from(flow.querySelectorAll("[data-book-tab]"));
+    const nextBtn = flow.querySelector("[data-book-next]");
+    const prevBtn = flow.querySelector("[data-book-prev]");
+    const saveBtns = Array.from(flow.querySelectorAll("[data-book-save]"));
+    const errorEl = flow.querySelector("[data-book-error]");
+    const customer = flow.querySelector('[name="customer_id"]');
+    const tour = flow.querySelector('[name="tour_id"]');
+    const MAX_GUESTS = 8;
+    const list = flow.querySelector("[data-guest-list]");
+    const template = flow.querySelector("[data-guest-template]");
+    const addBtn = flow.querySelector("[data-guest-add]");
+    let step = 1;
+
+    function guests() {
+        return Array.from(list ? list.querySelectorAll("[data-guest]") : []);
+    }
+    function nextIndex() {
+        const used = guests().map(function (card) { return Number(card.getAttribute("data-index")); });
+        for (let i = 0; i < MAX_GUESTS; i += 1) {
+            if (used.indexOf(i) === -1) return i;
+        }
+        return -1;
+    }
+    function bindCard(card, index) {
+        card.setAttribute("data-index", String(index));
+        card.querySelectorAll("[data-name]").forEach(function (input) {
+            input.name = "traveler_" + index + "_" + input.getAttribute("data-name");
+        });
+    }
+    function selectedLabel(select) {
+        if (!select || !select.selectedOptions.length) return "—";
+        const text = (select.selectedOptions[0].textContent || "").trim();
+        return select.value ? text : "—";
+    }
+    function filledGuests() {
+        return guests().filter(function (card) {
+            const first = card.querySelector('[data-name="first"]');
+            const last = card.querySelector('[data-name="last"]');
+            return Boolean(first && first.value.trim() && last && last.value.trim());
+        }).length;
+    }
+    function recap() {
+        const c = flow.querySelector("[data-book-customer]");
+        const t = flow.querySelector("[data-book-tour]");
+        const p = flow.querySelector("[data-book-party]");
+        if (c) c.textContent = "Customer · " + selectedLabel(customer);
+        if (t) t.textContent = "Tour · " + selectedLabel(tour);
+        if (p) p.textContent = "Travelers · " + Math.max(filledGuests(), guests().length);
+    }
+    function numberGuests() {
+        const cards = guests();
+        cards.forEach(function (card, index) {
+            const n = card.querySelector("[data-guest-n]");
+            if (n) n.textContent = String(index + 1).padStart(2, "0");
+            const remove = card.querySelector("[data-guest-remove]");
+            if (remove) remove.hidden = cards.length < 2;
+        });
+        if (addBtn) addBtn.hidden = cards.length >= MAX_GUESTS;
+        recap();
+    }
+    function addGuest() {
+        if (!template || !list || !template.content || !template.content.firstElementChild) return;
+        const index = nextIndex();
+        if (index < 0) return;
+        const node = template.content.firstElementChild.cloneNode(true);
+        bindCard(node, index);
+        list.appendChild(node);
+        numberGuests();
+        const first = node.querySelector('[data-name="first"]');
+        if (first) first.focus();
+    }
+    function setError(message) {
+        if (!errorEl) return;
+        errorEl.textContent = message || "";
+        errorEl.hidden = !message;
+        errorEl.classList.toggle("show", Boolean(message));
+    }
+    function canLeave(current) {
+        if (current === 1 && customer && !customer.value) {
+            setError("Choose a customer first.");
+            if (customer.focus) customer.focus();
+            return false;
+        }
+        if (current === 2 && tour && !tour.value) {
+            setError("Choose a tour first.");
+            if (tour.focus) tour.focus();
+            return false;
+        }
+        if (current === 3 && filledGuests() < 1) {
+            setError("Add at least one traveler with first and last name.");
+            return false;
+        }
+        setError("");
+        return true;
+    }
+    function show(n) {
+        step = Math.min(Math.max(n, 1), stages.length || 1);
+        stages.forEach(function (stage) {
+            stage.classList.toggle("is-on", Number(stage.getAttribute("data-book-stage")) === step);
+        });
+        tabs.forEach(function (tab) {
+            const id = Number(tab.getAttribute("data-book-tab"));
+            tab.classList.toggle("is-on", id === step);
+            tab.classList.toggle("is-done", id < step);
+        });
+        const last = step === stages.length;
+        if (prevBtn) prevBtn.hidden = step === 1;
+        if (nextBtn) nextBtn.hidden = last;
+        saveBtns.forEach(function (btn) { btn.hidden = !last; });
+        recap();
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener("click", function (event) {
+            event.preventDefault();
+            const target = Number(tab.getAttribute("data-book-tab"));
+            if (target > step && !canLeave(step)) return;
+            show(target);
+        });
+    });
+    if (nextBtn) {
+        nextBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            if (!canLeave(step)) return;
+            show(step + 1);
+        });
+    }
+    if (prevBtn) {
+        prevBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            setError("");
+            show(step - 1);
+        });
+    }
+    if (customer) customer.addEventListener("change", recap);
+    if (tour) tour.addEventListener("change", recap);
+    flow.addEventListener("input", recap);
+    if (addBtn) {
+        addBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            addGuest();
+        });
+    }
+    if (list) {
+        list.addEventListener("click", function (event) {
+            const btn = event.target.closest("[data-guest-remove]");
+            if (!btn || !list.contains(btn)) return;
+            event.preventDefault();
+            const card = btn.closest("[data-guest]");
+            if (!card || guests().length < 2) return;
+            card.remove();
+            numberGuests();
+        });
+    }
+    flow.addEventListener("submit", function (event) {
+        if (!customer || !customer.value || !tour || !tour.value || filledGuests() < 1) {
+            event.preventDefault();
+            if (!customer.value) show(1);
+            else if (!tour.value) show(2);
+            else show(3);
+            canLeave(step);
+        }
+    });
+
+    flow.classList.add("is-ready");
+    const start = flow.querySelector(".errorlist") ? (stages.find(function (stage) {
+        return stage.querySelector(".errorlist");
+    }) || stages[0]) : stages[0];
+    show(start ? Number(start.getAttribute("data-book-stage")) || 1 : 1);
+    if (!guests().length) addGuest();
+    numberGuests();
+})();
+</script>
+{% endblock %}

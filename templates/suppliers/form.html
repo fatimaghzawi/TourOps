@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Who they are</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.name caption="Company name" %}
+        <fieldset class="type-picker-wrap">
+            <legend class="form-label">Supplier type <span class="req" title="Required">*</span></legend>
+            {{ form.supplier_type.errors }}
+            <div class="type-picker" role="radiogroup" aria-label="Supplier type">
+                {% for radio in form.supplier_type %}
+                <label class="type-card">
+                    {{ radio.tag }}
+                    <strong>{{ radio.choice_label }}</strong>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <div class="type-extra" data-supplier-type="HOTEL" hidden>
+            <h3>Hotel</h3>
+            {% include "components/form_field.html" with field=form.star_rating caption="Star rating" %}
+        </div>
+        <div class="type-extra" data-supplier-type="TRANSPORTATION" hidden>
+            <h3>Transportation</h3>
+            {% include "components/form_field.html" with field=form.vehicle_type %}
+            <div class="form-row">
+                {% include "components/form_field.html" with field=form.fleet_size %}
+                {% include "components/form_field.html" with field=form.seats_per_vehicle %}
+            </div>
+            <div class="form-row">
+                {% include "components/form_field.html" with field=form.license_number %}
+                {% include "components/form_field.html" with field=form.coverage_areas %}
+            </div>
+        </div>
+        <div class="type-extra" data-supplier-type="TOUR_GUIDE" hidden>
+            <h3>Guide</h3>
+            {% include "components/form_field.html" with field=form.languages %}
+            <div class="form-row">
+                {% include "components/form_field.html" with field=form.years_experience caption="Years of experience" %}
+                {% include "components/form_field.html" with field=form.guide_license_number %}
+            </div>
+            {% include "components/form_field.html" with field=form.specialties %}
+        </div>
+        {% if form.status %}
+        {% include "components/form_field.html" with field=form.status %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>How you reach them</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.contact_person caption="Contact person" %}
+            {% include "components/form_field.html" with field=form.phone %}
+        </div>
+        {% include "components/form_field.html" with field=form.email %}
+        <div class="form-row form-row-3">
+            {% include "components/form_field.html" with field=form.city %}
+            {% include "components/form_field.html" with field=form.country %}
+            {% include "components/form_field.html" with field=form.street %}
+        </div>
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">3</span>
+            <div>
+                <h2>How you pay them</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.tax_number %}
+            {% include "components/form_field.html" with field=form.payment_terms caption="Payment terms" %}
+        </div>
+        <fieldset class="type-picker-wrap">
+            <legend class="form-label">Preferred payment method</legend>
+            {{ form.preferred_payment_method.errors }}
+            <div class="type-picker method-picker" role="radiogroup" aria-label="Preferred payment method">
+                {% for radio in form.preferred_payment_method %}
+                <label class="type-card">
+                    {{ radio.tag }}
+                    <strong>{{ radio.choice_label }}</strong>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+        <div class="type-extra" data-payment-method="BANK_TRANSFER" hidden>
+            <h3>Bank account</h3>
+            <div class="form-row">
+                {% include "components/form_field.html" with field=form.bank_name %}
+                {% include "components/form_field.html" with field=form.account_name %}
+            </div>
+            {% include "components/form_field.html" with field=form.iban %}
+            <div class="form-row">
+                {% include "components/form_field.html" with field=form.swift_bic %}
+                {% include "components/form_field.html" with field=form.account_number caption="Account number" %}
+            </div>
+        </div>
+        <div class="type-extra" data-payment-method="CARD" hidden>
+            <h3>Card</h3>
+        </div>
+    </section>
+
+    <section class="form-card">
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save supplier" }}</button>
+        {% if record %}
+        <a class="btn btn-ghost" href="{% url 'suppliers:detail' record.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'suppliers:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const radios = document.querySelectorAll('[name="supplier_type"]');
+    const panels = document.querySelectorAll("[data-supplier-type]");
+    if (!radios.length) return;
+    function selectedType() {
+        const on = document.querySelector('[name="supplier_type"]:checked');
+        return on ? on.value : "";
+    }
+    function sync() {
+        const type = selectedType();
+        panels.forEach(function (panel) {
+            const on = Boolean(type) && panel.getAttribute("data-supplier-type") === type;
+            panel.hidden = !on;
+            panel.querySelectorAll("input, select, textarea").forEach(function (el) {
+                el.disabled = !on;
+            });
+        });
+    }
+    radios.forEach(function (radio) {
+        radio.addEventListener("change", sync);
+    });
+    sync();
+
+    const methodRadios = document.querySelectorAll('[name="preferred_payment_method"]');
+    const methodPanels = document.querySelectorAll("[data-payment-method]");
+    function selectedMethod() {
+        const on = document.querySelector('[name="preferred_payment_method"]:checked');
+        return on ? on.value : "";
+    }
+    function syncMethod() {
+        const method = selectedMethod();
+        methodPanels.forEach(function (panel) {
+            const on = Boolean(method) && panel.getAttribute("data-payment-method") === method;
+            panel.hidden = !on;
+            panel.querySelectorAll("input, select, textarea").forEach(function (el) {
+                el.disabled = !on;
+            });
+        });
+    }
+    methodRadios.forEach(function (radio) {
+        radio.addEventListener("change", syncMethod);
+    });
+    syncMethod();
+})();
+</script>
+{% endblock %}

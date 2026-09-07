@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="profile-hero">
+    <span class="avatar lg">{{ record.initials }}</span>
+    <div>
+        <p class="tiny">{{ record.email }}</p>
+        <h1>{{ record.name }}</h1>
+        <p class="muted">{{ record.role_label }} · Last login {{ record.last }}</p>
+    </div>
+    <div class="actions">
+        {% include "components/status_badge.html" with status=record.status %}
+        {% if not is_self %}
+            {% url 'accounts:user_status' record.id as status_url %}
+            {% if record.status == 'ACTIVE' %}
+            {% include "components/ico_btn.html" with action=status_url title="Deactivate" icon="off" hidden_name="status" hidden_value="INACTIVE" %}
+            {% else %}
+            {% include "components/ico_btn.html" with action=status_url title="Activate" icon="on" hidden_name="status" hidden_value="ACTIVE" %}
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+<div class="two-col">
+    <section class="panel">
+        <h2>Permissions</h2>
+        <ul>
+            {% if record.role == 'OWNER_ADMIN' %}
+            <li>All operations, finance, users, settings, audit</li>
+            {% elif record.role == 'ACCOUNTANT' %}
+            <li>Invoices, payments, refunds, expenses, reports, balances</li>
+            {% else %}
+            <li>Customers, bookings, tours, packages, suppliers</li>
+            {% endif %}
+        </ul>
+        {% if not is_self %}
+        <form method="post" action="{% url 'accounts:user_role' record.id %}" style="margin-top:1rem">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=role_form.role caption="Change role" %}
+            <div class="ops-form-foot" style="position:static;margin-top:.85rem;padding:0;border:0;background:transparent;box-shadow:none">
+                <button class="btn btn-warm" type="submit">Save role</button>
+            </div>
+        </form>
+        {% endif %}
+    </section>
+    <section class="panel">
+        <h2>Password</h2>
+        {% if is_self %}
+        <p style="margin-top:.8rem"><a class="btn btn-ghost" href="{% url 'accounts:password' %}">Change my password</a></p>
+        {% else %}
+        <form method="post" action="{% url 'accounts:user_password' record.id %}" style="margin-top:.8rem">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=password_form.new_password caption="New password" %}
+            {% include "components/form_field.html" with field=password_form.confirm_password caption="Confirm password" %}
+            <div class="ops-form-foot" style="position:static;margin-top:.85rem;padding:0;border:0;background:transparent;box-shadow:none">
+                <button class="btn btn-warm" type="submit">Reset password</button>
+            </div>
+        </form>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<nav class="product-setup" aria-label="Build a product">
+    <p class="tiny">Build a product</p>
+    <ol>
+        <li>
+            <a href="{% url 'suppliers:create' %}">New supplier</a>
+            <span class="muted">Who provides it</span>
+        </li>
+        <li>
+            <a href="{% url 'suppliers:service_new' %}">Add services</a>
+            <span class="muted">On an existing supplier</span>
+        </li>
+        <li>
+            <a href="{% url 'packages:create' %}">New package</a>
+            <span class="muted">Pick those services</span>
+        </li>
+        <li>
+            <a href="{% url 'tours:create' %}">New tour</a>
+            <span class="muted">Date the package</span>
+        </li>
+    </ol>
+</nav>

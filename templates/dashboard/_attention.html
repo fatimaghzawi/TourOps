@@ -1,0 +1,32 @@
+{% load tourops %}
+<section class="dash-card">
+    <div class="panel-h">
+        <h2>Needs you now</h2>
+        {% with ar=dash.overdue_invoices|length ap=dash.overdue_expenses|length %}
+        <span class="tiny">{{ ar|add:ap }} open</span>
+        {% endwith %}
+    </div>
+    {% for inv in dash.overdue_invoices %}
+    <a class="dash-ticket" href="{% url 'invoices:detail' inv.id %}">
+        <span class="dash-stamp">AR</span>
+        <div>
+            <strong>{{ inv.number }}</strong>
+            <em>{{ inv.customer }} · due {{ inv.due }}</em>
+        </div>
+        <b>{{ inv.remaining|money }}</b>
+    </a>
+    {% endfor %}
+    {% for e in dash.overdue_expenses %}
+    <a class="dash-ticket" href="{% if e.id %}{% url 'supplier_payments:create' %}?expense_id={{ e.id }}{% else %}{% url 'finance:payables' %}{% endif %}">
+        <span class="dash-stamp ap">AP</span>
+        <div>
+            <strong>{{ e.number }}</strong>
+            <em>{{ e.supplier }} · due {{ e.due }}</em>
+        </div>
+        <b>{{ e.remaining|money }}</b>
+    </a>
+    {% endfor %}
+    {% if not dash.overdue_invoices and not dash.overdue_expenses %}
+    <p class="muted">Nothing overdue in this range. Nice quiet desk.</p>
+    {% endif %}
+</section>

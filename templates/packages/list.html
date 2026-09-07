@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Packages</h1>
+    </div>
+    <div class="actions"><a class="btn btn-warm" href="{% url 'packages:create' %}">New package</a></div>
+</div>
+<div class="cards">
+    {% for p in packages %}
+    <article class="p-card">
+        <a class="p-card-main" href="{% url 'packages:detail' p.id %}">
+            <div class="t-body">
+                <span class="type-pill">{{ p.city }}</span>
+                <h2 style="margin-top:.35rem">{{ p.name }}</h2>
+                <p class="muted">{{ p.duration }}</p>
+                <p style="font-size:1.15rem;font-weight:750;margin:.4rem 0 0">From {{ p.price|money }}/person</p>
+                {% if p.costing.has_costs %}
+                <p class="muted" style="font-size:.84rem">Land {{ p.costing.land_cost_per_person|money }} · {{ p.costing.margin_percent }}% margin</p>
+                {% endif %}
+                <p class="muted" style="font-size:.84rem">{{ p.includes|default:"—" }}</p>
+                <div style="margin-top:.5rem">{% include "components/status_badge.html" with status=p.status %}</div>
+            </div>
+        </a>
+        <div class="card-actions">
+            {% url 'packages:detail' p.id as view_url %}
+            {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+            {% url 'packages:edit' p.id as edit_url %}
+            {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+            {% if p.status == 'ACTIVE' %}
+            <a class="ico-btn is-primary" href="{% url 'tours:create' %}?package_id={{ p.id }}" title="Create tour" aria-label="Create tour">
+                {% include "components/ico_mark.html" with icon="calendar" %}
+            </a>
+            {% endif %}
+        </div>
+    </article>
+    {% empty %}
+    {% url 'packages:create' as package_create_url %}
+    {% include "components/empty_state.html" with title="No packages yet" body="Create a reusable product from supplier services, then schedule tours from that package." cta="New package" cta_url=package_create_url %}
+    {% endfor %}
+</div>
+{% endblock %}

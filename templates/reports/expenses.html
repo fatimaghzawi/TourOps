@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Expense breakdown</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'reports:list' %}{{ query }}">All reports</a>
+</div>
+{% include "reports/_filters.html" %}
+{% if report %}
+<div class="waterfall" style="max-width:560px">
+    {% for group in report.groups %}
+    <div class="wf">
+        <span>{{ group.label }}</span>
+        <div class="track"><i class="cost" style="width:{{ group.pct }}%;{% if group.label == 'Overhead' %}background:#78716c{% endif %}"></i></div>
+        <b>{{ group.amount|money }}</b>
+    </div>
+    {% empty %}
+    <p class="muted">No expenses in this range.</p>
+    {% endfor %}
+</div>
+{% if report.categories %}
+<p class="muted" style="margin-top:1rem">Total {{ report.total|money }} across {{ report.count }} expense{{ report.count|pluralize }}.</p>
+{% endif %}
+{% else %}
+{% include "components/empty_state.html" with title="No expense data" body="Record tour or general expenses to see the breakdown." %}
+{% endif %}
+{% endblock %}

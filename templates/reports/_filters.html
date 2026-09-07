@@ -1,0 +1,26 @@
+<form class="filter-bar" method="get" data-autosubmit>
+    <label>Month
+        <input class="field" type="month" name="month" value="{{ filters.month }}">
+    </label>
+    <label>From
+        <input class="field" type="date" name="from" value="{{ filters.from }}">
+    </label>
+    <label>To
+        <input class="field" type="date" name="to" value="{{ filters.to }}">
+    </label>
+    {% if tour_choices is not None %}
+    <label>Tour
+        <select class="field" name="tour">
+            <option value="">All tours</option>
+            {% for id, name in tour_choices %}
+            <option value="{{ id }}" {% if filters.tour == id %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    {% endif %}
+    <div class="filter-actions">
+        {% if filters.month or filters.from or filters.to or filters.tour %}
+        <a class="btn btn-ghost" href="?">Clear</a>
+        {% endif %}
+    </div>
+</form>

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Who and which tour</h2>
+            </div>
+        </header>
+        {% if form.tour_id.is_hidden %}
+        <div class="identity-chip">
+            <strong>{{ locked_tour_label|default:"Selected tour" }}</strong>
+            <span>Tour is locked on this arrangement</span>
+        </div>
+        {{ form.tour_id }}
+        {% else %}
+        {% include "components/form_field.html" with field=form.tour_id %}
+        {% endif %}
+        {% if form.supplier_id.is_hidden %}
+        <div class="identity-chip">
+            <strong>{{ locked_supplier_label|default:"Selected supplier" }}</strong>
+            <span>Supplier is locked on this arrangement</span>
+        </div>
+        {{ form.supplier_id }}
+        {% else %}
+        {% include "components/form_field.html" with field=form.supplier_id %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Dates and quantity</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.start_date caption="Start" %}
+            {% include "components/form_field.html" with field=form.end_date caption="End" %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.release_date caption="Release / cutoff date" %}
+            {% include "components/form_field.html" with field=form.quantity %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.confirmation_number %}
+            {% include "components/form_field.html" with field=form.status %}
+        </div>
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save reservation" }}</button>
+        <a class="btn btn-ghost" href="{% url 'supplier_reservations:list' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

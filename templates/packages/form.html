@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Package information</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.name caption="Package name" %}
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.city %}
+            {% include "components/form_field.html" with field=form.country %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.duration_days caption="Duration (days)" %}
+            {% include "components/form_field.html" with field=form.default_capacity caption="Default capacity" %}
+        </div>
+        {% include "components/form_field.html" with field=form.included_services caption="Customer-facing includes" %}
+        {% include "components/form_field.html" with field=form.excluded_services caption="Customer-facing excludes" %}
+        {% include "components/form_field.html" with field=form.description %}
+        {% if form.status %}
+        {% include "components/form_field.html" with field=form.status %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Supplier services</h2>
+            </div>
+        </header>
+        {% if has_departures %}
+        <p class="note">This package already has dated tours. Saving here updates the blueprint for <strong>new</strong> tours only. Existing tours keep the services they inherited.</p>
+        {% endif %}
+        {% if catalog %}
+        <label class="form-field">
+            <span class="form-label">Search services</span>
+            <input class="field" type="search" data-catalog-filter placeholder="Hotel, transfer, guide…" autocomplete="off">
+        </label>
+        <div class="catalog-list">
+            {% for item in catalog %}
+            <label class="catalog-row" data-catalog-row data-search="{{ item.supplier }} {{ item.name }} {{ item.kind_label }}" data-name="{{ item.name }}" data-supplier="{{ item.supplier }}" data-cost="{{ item.estimated_cost }}" data-basis="{{ item.cost_basis }}">
+                <input type="checkbox" name="service_ids" value="{{ item.id }}" {% if item.selected %}checked{% endif %}>
+                <span>
+                    <strong>{{ item.supplier }} — {{ item.name }}</strong>
+                    <span class="muted">{{ item.kind_label }}{% if item.estimated_cost %} · est. {{ item.estimated_cost|money }} {{ item.basis_label }}{% endif %}{% if item.unavailable %} · inactive — kept until you uncheck it{% endif %}</span>
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+        {% else %}
+            {% url 'suppliers:service_new' as add_service_url %}
+            {% include "components/empty_state.html" with title="No supplier services yet" body="Add a supplier, then add services on that supplier. Come back here to attach them to the package." cta="Add a service" cta_url=add_service_url %}
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">3</span>
+            <div>
+                <h2>Price from cost</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.target_margin_percent caption="Target margin %" %}
+            {% include "components/form_field.html" with field=form.currency %}
+        </div>
+        {% include "components/form_field.html" with field=form.selling_price_per_person caption="Selling price / person" %}
+        {% if record %}
+        {% include "components/cost_sheet.html" with costing=record.costing live=1 plain=1 intro="Land cost is supplier estimates at this capacity. Group costs (coach, guide) are shared across seats. Suggested price is land cost plus the target margin, rounded up to $10." %}
+        {% else %}
+        {% include "components/cost_sheet.html" with costing=None live=1 plain=1 intro="Land cost is supplier estimates at this capacity. Group costs (coach, guide) are shared across seats. Suggested price is land cost plus the target margin, rounded up to $10." %}
+        {% endif %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save package" }}</button>
+        {% if record %}
+        <a class="btn btn-ghost" href="{% url 'packages:detail' record.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'packages:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/costing.js' %}?v=1"></script>
+<script>
+(function () {
+    const input = document.querySelector("[data-catalog-filter]");
+    if (!input) return;
+    const rows = document.querySelectorAll("[data-catalog-row]");
+    input.addEventListener("input", function () {
+        const q = input.value.trim().toLowerCase();
+        rows.forEach(function (row) {
+            const hay = (row.getAttribute("data-search") || "").toLowerCase();
+            row.hidden = q && hay.indexOf(q) === -1;
+        });
+    });
+})();
+</script>
+{% endblock %}

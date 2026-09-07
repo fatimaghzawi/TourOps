@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+{% if needs_package %}
+    {% url 'packages:create' as package_create_url %}
+    {% include "components/empty_state.html" with title="Create a package first" body="Tours are departures of a package. Build the product (and pick supplier services), then come back to schedule dates." cta="New package" cta_url=package_create_url %}
+{% else %}
+<form method="post" class="ops-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Package</h2>
+            </div>
+        </header>
+        {% if package_locked %}
+        <div class="identity-chip">
+            <strong>{{ record.package }}</strong>
+        </div>
+        {{ form.package_id }}
+        {% else %}
+        {% include "components/form_field.html" with field=form.package_id caption="Package" %}
+        {% endif %}
+        {% if selected_package %}
+        <div class="inherit-card">
+            <p><strong>{{ selected_package.name }}</strong></p>
+            <p class="muted">{{ selected_package.city }} · {{ selected_package.duration }} · {{ selected_package.price|money }}/person</p>
+            <input type="hidden" data-inherited-margin value="{{ selected_package.target_margin_percent }}">
+            <ul>
+                {% for line in selected_package.services %}
+                <li data-inherited-service data-name="{{ line.title }}" data-supplier="{{ line.supplier }}" data-cost="{{ line.estimated_cost }}" data-basis="{{ line.cost_basis }}">{{ line.supplier }} — {{ line.title }} · est. {{ line.estimated_cost|money }} {{ line.basis_label }}</li>
+                {% empty %}
+                <li>No supplier services on this package yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>This departure</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.name caption="Tour name" %}
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.city caption="Destination city" %}
+            {% include "components/form_field.html" with field=form.country %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.start_date caption="Start date" %}
+            {% include "components/form_field.html" with field=form.end_date caption="End date" %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.capacity %}
+            {% include "components/form_field.html" with field=form.selling_price_per_person caption="Selling price / traveler" %}
+        </div>
+        {% include "components/form_field.html" with field=form.currency %}
+        {% include "components/form_field.html" with field=form.included_services caption="Customer-facing includes" %}
+        {% include "components/form_field.html" with field=form.excluded_services caption="Customer-facing excludes" %}
+        {% include "components/form_field.html" with field=form.description %}
+        {% if form.status %}
+        {% include "components/form_field.html" with field=form.status %}
+        {% endif %}
+    </section>
+
+    {% if selected_package or catalog %}
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">3</span>
+            <div>
+                <h2>Services for this departure</h2>
+            </div>
+        </header>
+        <label class="catalog-toggle">
+            <input type="checkbox" name="override_services" value="1" {% if override_services %}checked{% endif %} data-override-services>
+            <span>
+                <strong>Replace inherited services</strong>
+            </span>
+        </label>
+        <div class="override-panel" data-override-panel {% if not override_services %}hidden{% endif %}>
+            {% if catalog %}
+            <label class="form-field">
+                <span class="form-label">Search services</span>
+                <input class="field" type="search" data-catalog-filter placeholder="Hotel, transfer, guide…" autocomplete="off">
+            </label>
+            <div class="catalog-list">
+                {% for item in catalog %}
+                <label class="catalog-row" data-catalog-row data-search="{{ item.supplier }} {{ item.name }} {{ item.kind_label }}" data-name="{{ item.name }}" data-supplier="{{ item.supplier }}" data-cost="{{ item.estimated_cost }}" data-basis="{{ item.cost_basis }}">
+                    <input type="checkbox" name="service_ids" value="{{ item.id }}" {% if item.selected %}checked{% endif %}>
+                    <span>
+                        <strong>{{ item.supplier }} — {{ item.name }}</strong>
+                        <span class="muted">{{ item.kind_label }}{% if item.estimated_cost %} · est. {{ item.estimated_cost|money }} {{ item.basis_label }}{% endif %}</span>
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="muted">No active catalog services. Add them on the supplier first.</p>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if record %}
+    {% include "components/cost_sheet.html" with costing=record.costing live=1 step=4 heading="Price from cost" intro="Capacity changes how group costs are shared. Leave selling price blank to keep the package rate, or use the suggested price for this departure." %}
+    {% elif selected_package %}
+    {% include "components/cost_sheet.html" with costing=selected_package.costing live=1 step=4 heading="Price from cost" intro="Capacity changes how group costs are shared. Leave selling price blank to keep the package rate, or use the suggested price for this departure." %}
+    {% else %}
+    {% include "components/cost_sheet.html" with costing=None live=1 step=4 heading="Price from cost" intro="Capacity changes how group costs are shared. Leave selling price blank to keep the package rate, or use the suggested price for this departure." %}
+    {% endif %}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">{% if selected_package or catalog %}5{% else %}4{% endif %}</span>
+            <div>
+                <h2>Client gallery</h2>
+            </div>
+        </header>
+        {% if gallery %}
+        <div class="gallery-edit">
+            {% for photo in gallery %}
+            <figure>
+                <img src="{% url 'attachments:preview' photo.id %}" alt="{{ photo.file_name }}">
+            </figure>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% include "components/gallery_picker.html" with gallery_room=gallery_room picker_label="Add photos" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save tour" }}</button>
+        {% if record %}
+        <a class="btn btn-ghost" href="{% url 'tours:detail' record.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'tours:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/costing.js' %}?v=1"></script>
+<script src="{% static 'js/gallery-picker.js' %}?v=1"></script>
+{% if form and not package_locked %}
+<script>
+(function () {
+    const select = document.querySelector('[name="package_id"]');
+    if (!select) return;
+    select.addEventListener("change", function () {
+        if (!select.value) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set("package_id", select.value);
+        window.location.href = url.toString();
+    });
+})();
+</script>
+{% endif %}
+<script>
+(function () {
+    const toggle = document.querySelector("[data-override-services]");
+    const panel = document.querySelector("[data-override-panel]");
+    if (toggle && panel) {
+        toggle.addEventListener("change", function () {
+            panel.hidden = !toggle.checked;
+        });
+    }
+    const input = document.querySelector("[data-catalog-filter]");
+    if (!input) return;
+    const rows = document.querySelectorAll("[data-catalog-row]");
+    input.addEventListener("input", function () {
+        const q = input.value.trim().toLowerCase();
+        rows.forEach(function (row) {
+            const hay = (row.getAttribute("data-search") || "").toLowerCase();
+            row.hidden = q && hay.indexOf(q) === -1;
+        });
+    });
+})();
+</script>
+{% endblock %}

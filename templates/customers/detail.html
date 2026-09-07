@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="profile-hero">
+    <span class="avatar lg teal">{{ record.initials }}</span>
+    <div>
+        <p class="type-pill">{{ record.number }}</p>
+        <h1>{{ record.name }}</h1>
+        <p class="muted">{{ record.email }} · {{ record.phone|default:"—" }}</p>
+    </div>
+    <div class="actions">
+        {% include "components/status_badge.html" with status=record.status %}
+        {% if nav.ops %}
+        <a class="ico-btn is-primary" href="{% url 'bookings:create' %}?customer_id={{ record.id }}" title="Create booking" aria-label="Create booking">
+            {% include "components/ico_mark.html" with icon="book" %}
+        </a>
+        {% url 'customers:edit' record.id as edit_url %}
+        {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="metrics-4">
+    <div class="metric"><span class="tiny">Open balance</span><b>{{ outstanding|money }}</b></div>
+    <div class="metric"><span class="tiny">Bookings</span><b>{{ bookings|length }}</b></div>
+    <div class="metric"><span class="tiny">Invoices</span><b>{{ invoices|length }}</b></div>
+    <div class="metric"><span class="tiny">Status</span><b style="font-size:1rem">{% include "components/status_badge.html" with status=record.status %}</b></div>
+</div>
+
+<section class="panel">
+    <h2>Profile</h2>
+    <dl class="kv" style="margin-top:.7rem">
+        <dt>City</dt><dd>{{ record.city|default:"—" }}</dd>
+        <dt>Country</dt><dd>{{ record.country|default:"—" }}</dd>
+        <dt>Passport</dt><dd>{{ record.passport|default:"—" }}</dd>
+        <dt>Nationality</dt><dd>{{ record.nationality|default:"—" }}</dd>
+        {% if record.notes %}<dt>Notes</dt><dd>{{ record.notes }}</dd>{% endif %}
+    </dl>
+</section>
+
+<section class="panel" style="padding:0;margin-top:.85rem">
+    <div class="panel-h" style="padding:1rem 1rem 0">
+        <h2>Bookings</h2>
+    </div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Booking</th>
+                <th>Tour</th>
+                <th>Dates</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for b in bookings %}
+            <tr>
+                <td><a class="mono" href="{% url 'bookings:detail' b.id %}"><strong>{{ b.number }}</strong></a></td>
+                <td>{{ b.product }}</td>
+                <td>{{ b.dates }}</td>
+                <td>{% include "components/status_badge.html" with status=b.status %}</td>
+                <td>{% include "components/status_badge.html" with status=b.pay %}</td>
+                <td><strong>{{ b.total|money }}</strong></td>
+                <td class="row-actions">
+                    {% if nav.ops %}
+                    {% url 'bookings:detail' b.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">
+                    <p class="muted" style="margin:.8rem">No bookings yet for this customer.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel" style="padding:0;margin-top:.85rem">
+    <div class="panel-h" style="padding:1rem 1rem 0">
+        <h2>Invoices</h2>
+    </div>
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Remaining</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for inv in invoices %}
+            <tr>
+                <td>
+                    {% if nav.finance %}
+                    <a class="mono" href="{% url 'invoices:detail' inv.id %}">{{ inv.invoice_number }}</a>
+                    {% else %}
+                    <span class="mono">{{ inv.invoice_number }}</span>
+                    {% endif %}
+                </td>
+                <td>{% include "components/status_badge.html" with status=inv.status %}</td>
+                <td>{{ inv.total_amount|money }}</td>
+                <td><strong>{{ inv.remaining|money }}</strong></td>
+                <td class="row-actions">
+                    {% if inv.can_collect and inv.booking_id and nav.ops %}
+                    {% url 'bookings:detail' inv.booking_id as collect_url %}
+                    {% include "components/ico_btn.html" with href=collect_url title="Collect payment" icon="pay" primary=1 %}
+                    {% elif inv.can_collect and nav.finance %}
+                    {% url 'invoices:detail' inv.id as collect_url %}
+                    {% include "components/ico_btn.html" with href=collect_url title="Collect payment" icon="pay" primary=1 %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">
+                    <p class="muted" style="margin:.8rem">No invoices yet. Confirm a booking to issue one.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+{% if nav.ops %}
+<div style="margin-top:.85rem">
+    {% include "attachments/_panel.html" %}
+</div>
+{% endif %}
+{% endblock %}

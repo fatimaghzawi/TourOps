@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="tiny">{{ record.service_label }} · {{ record.number }}</p>
+        <h1>{{ record.supplier }}</h1>
+        <p>{{ record.tour }}{% if record.dates %} — {{ record.dates }}{% endif %}</p>
+    </div>
+    <div class="actions">
+        {% include "components/status_badge.html" with status=record.status %}
+        {% if not record.is_cancelled %}
+        {% url 'supplier_reservations:edit' record.id as edit_url %}
+        {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+        {% endif %}
+        {% url 'supplier_reservations:email' record.id as email_url %}
+        {% include "components/ico_btn.html" with href=email_url title="Email supplier" icon="mail" primary=1 %}
+        {% if record.tour_id %}
+        <a class="ico-btn" href="{% url 'tours:detail' record.tour_id %}?tab=reservations" title="View tour" aria-label="View tour">
+            {% include "components/ico_mark.html" with icon="view" %}
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if record.is_requested %}
+<div class="callout callout-warn">
+    <strong>REQUESTED</strong>
+    <p>Supplier confirmation has not yet been recorded. Contact the supplier externally and update this reservation once confirmation is received.</p>
+</div>
+{% elif record.is_confirmed %}
+<div class="callout callout-ok">
+    <strong>CONFIRMED</strong>
+    <p>Supplier confirmation recorded by the travel agent. Confirmation number: <span class="mono">{{ record.confirmation_number }}</span></p>
+</div>
+{% elif record.is_cancelled %}
+<div class="callout">
+    <strong>CANCELLED</strong>
+    <p>This arrangement is cancelled. Tour seats and supplier finance were not changed automatically.</p>
+</div>
+{% endif %}
+
+{% if record.release %}
+<div class="callout {% if record.release_approaching or record.release_passed %}callout-warn{% else %}callout-info{% endif %}" style="margin-top:.8rem">
+    <strong>Release date {{ record.release }}</strong>
+    {% if record.release_days is not None and record.release_days >= 0 %}
+        <p>{{ record.release_days }} day(s) remaining.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="metrics-4" style="margin-top:1rem">
+    <div class="metric"><span class="tiny">Quantity</span><b>{{ record.quantity|default:"—" }}</b></div>
+    <div class="metric"><span class="tiny">Confirmation</span><b style="font-size:1rem">{{ record.confirmation_number|default:"—" }}</b></div>
+    <div class="metric"><span class="tiny">Supplier email</span><b style="font-size:.85rem">{{ record.supplier_email|default:"—" }}</b></div>
+</div>
+
+<div class="two-col" style="margin-top:1rem">
+    {% if record.is_requested %}
+    <form method="post" action="{% url 'supplier_reservations:confirm' record.id %}" class="form-card" id="confirm">
+        {% csrf_token %}
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Record supplier confirmation</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=confirm_form.confirmation_number caption="Confirmation number" %}
+        {% include "components/form_field.html" with field=confirm_form.notes caption="Confirmation notes" %}
+        <button class="btn btn-ok" type="submit">Mark as confirmed</button>
+    </form>
+    {% endif %}
+    {% if not record.is_cancelled %}
+    <form method="post" action="{% url 'supplier_reservations:cancel' record.id %}" class="panel" data-confirm="{{ record.number }} will be marked cancelled. This does not create or change an expense." data-confirm-title="Drop this arrangement?" data-confirm-ok="Cancel it">
+        {% csrf_token %}
+        <h2>Cancel arrangement</h2>
+        <button class="btn btn-ghost" type="submit">Cancel reservation</button>
+    </form>
+    {% endif %}
+</div>
+
+<section class="panel" style="margin-top:1rem">
+    <h2>Finance</h2>
+    {% if nav.finance %}
+        {% for e in expenses %}
+            <p style="margin-top:.6rem">
+                <a href="{% url 'expenses:detail' e.id %}">{{ e.number }}</a>
+                · Amount {{ e.amount|money }} · Paid {{ e.paid|money }} · Remaining {{ e.remaining|money }}
+                {% include "components/status_badge.html" with status=e.payment_status %}
+            </p>
+        {% empty %}
+            <p class="muted" style="margin:.6rem 0">No supplier bill recorded yet.</p>
+            <a class="ico-btn is-primary" href="{% url 'expenses:create' %}?supplier_id={{ record.supplier_id }}&tour_id={{ record.tour_id }}&reservation_id={{ record.id }}" title="Record bill" aria-label="Record bill">
+                {% include "components/ico_mark.html" with icon="bill" %}
+            </a>
+        {% endfor %}
+    {% endif %}
+</section>
+
+<section class="panel" style="margin-top:1rem">
+    <h2>Activity</h2>
+    {% if record.created_label %}
+        <div class="tl" style="margin-bottom:.55rem"><i></i><div>Reservation created<div class="tiny" style="text-transform:none">{{ record.created_label }}</div></div></div>
+    {% endif %}
+    {% if record.is_confirmed %}
+        <div class="tl" style="margin-bottom:.55rem"><i></i><div>Confirmation recorded · {{ record.confirmation_number }}</div></div>
+    {% endif %}
+    {% for item in activity %}
+        <div class="tl" style="margin-bottom:.55rem"><i></i><div>{{ item.description }}<div class="tiny" style="text-transform:none">{{ item.date }} {{ item.time }} · {{ item.who }}</div></div></div>
+    {% empty %}
+        {% if not record.created_label %}<p class="muted">No further activity yet.</p>{% endif %}
+    {% endfor %}
+</section>
+{% endblock %}

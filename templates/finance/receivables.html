@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Accounts receivable</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'invoices:list' %}">Invoice workspace</a>
+        <a class="btn btn-warm" href="{% url 'payments:create' %}">Record payment</a>
+    </div>
+</div>
+{% include "finance/_nav.html" %}
+
+{% if report %}
+{% if report.mixed_currency %}
+<p class="muted">These invoices mix {{ report.currencies|join:", " }}. The total is not converted between currencies.</p>
+{% endif %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr><th>Invoice</th><th>Customer</th><th>Due</th><th>Total</th><th>Remaining</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for inv in report.invoices %}
+            <tr class="{% if inv.overdue %}is-overdue{% endif %}">
+                <td><a class="mono" href="{% url 'invoices:detail' inv.id %}">{{ inv.number }}</a></td>
+                <td>
+                    {% if inv.customer_id %}
+                    <a href="{% url 'customers:detail' inv.customer_id %}">{{ inv.customer }}</a>
+                    {% else %}
+                    {{ inv.customer }}
+                    {% endif %}
+                </td>
+                <td>{{ inv.due }}{% if inv.overdue %} <span class="badge b-bad">Overdue</span>{% endif %}</td>
+                <td>{{ inv.total|money }}</td>
+                <td><strong>{{ inv.remaining|money }}</strong></td>
+                <td>{% include "components/status_badge.html" with status=inv.status %}</td>
+                <td class="row-actions">
+                    {% url 'invoices:detail' inv.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% if inv.has_remaining %}
+                    <a class="ico-btn is-primary" href="{% url 'payments:create' %}?invoice_id={{ inv.id }}" title="Record payment" aria-label="Record payment">
+                        {% include "components/ico_mark.html" with icon="pay" %}
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">
+                    {% include "components/empty_state.html" with title="No open receivables" body="When confirmed bookings are invoiced and still unpaid, they will show up here." %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

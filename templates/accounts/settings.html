@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>System settings</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'admin:index' %}">Open Django Admin</a>
+        <a class="btn btn-ghost" href="{% url 'accounts:users' %}">Staff directory</a>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Agency</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.agency_name %}
+            {% include "components/form_field.html" with field=form.legal_name %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.agency_email %}
+            {% include "components/form_field.html" with field=form.agency_phone %}
+        </div>
+        {% include "components/form_field.html" with field=form.agency_address wide=True %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Finance defaults</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.currency %}
+            {% include "components/form_field.html" with field=form.invoice_due_days %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.tax_name %}
+            {% include "components/form_field.html" with field=form.tax_rate %}
+        </div>
+        <label class="catalog-toggle">
+            {{ form.tax_enabled }}
+            <span>
+                <strong>{{ form.tax_enabled.label }}</strong>
+            </span>
+        </label>
+        {{ form.tax_enabled.errors }}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">3</span>
+            <div>
+                <h2>Document numbering</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.number_start %}
+        <div class="form-row">
+            {% for label, field in form.prefix_rows %}
+            {% include "components/form_field.html" with field=field caption=label %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">4</span>
+            <div>
+                <h2>Roles &amp; security</h2>
+            </div>
+        </header>
+        <dl class="kv">
+            <dt>Travel Agent</dt><dd>Customers, bookings, tours, packages, suppliers, reservations.</dd>
+            <dt>Accountant</dt><dd>Invoices, payments, refunds, expenses, reports.</dd>
+            <dt>Owner / Admin</dt><dd>Everything, including users, audit, and these settings.</dd>
+        </dl>
+        <p style="margin-top:.8rem"><a class="btn btn-ghost" href="{% url 'accounts:password' %}">Change my password</a></p>
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">Save settings</button>
+    </div>
+</form>
+{% endblock %}

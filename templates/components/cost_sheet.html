@@ -1,0 +1,55 @@
+{% load tourops %}
+{% if plain %}
+<div class="cost-sheet{% if live %} is-live{% endif %}" {% if live %}data-cost-sheet{% endif %}>
+{% else %}
+<section class="form-card cost-sheet{% if live %} is-live{% endif %}" {% if live %}data-cost-sheet{% endif %}>
+    <header class="form-card-h">
+        {% if step %}<span class="form-step">{{ step }}</span>{% endif %}
+        <div>
+            <h2>{{ heading|default:"Cost sheet" }}</h2>
+        </div>
+    </header>
+{% endif %}
+    {% if intro %}
+    <p class="muted">{{ intro }}</p>
+    {% endif %}
+    <div class="cost-lines" data-cost-lines>
+        {% if costing %}
+        {% for line in costing.lines %}
+        <div class="cost-line">
+            <div>
+                <strong>{{ line.name }}</strong>
+                <div class="muted">{% if line.supplier %}{{ line.supplier }} · {% endif %}{{ line.estimated_cost|money }} {{ line.basis_label }}</div>
+            </div>
+            <div>{{ line.per_person_share|money }}</div>
+        </div>
+        {% empty %}
+        <p class="muted" data-cost-empty>Tick supplier services to build land cost.</p>
+        {% endfor %}
+        {% else %}
+        <p class="muted" data-cost-empty>Tick supplier services to build land cost.</p>
+        {% endif %}
+    </div>
+    <div class="fin cost-fin">
+        <div class="fin-row"><span>Per traveler (hotels, tickets)</span><span data-cost-variable>{% if costing %}{{ costing.variable_per_person|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row"><span>Shared across the departure</span><span data-cost-group>{% if costing %}{{ costing.group_total|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row"><span>Land cost / traveler at {% if costing %}{{ costing.capacity|default:"—" }}{% else %}—{% endif %} pax</span><span data-cost-land>{% if costing %}{{ costing.land_cost_per_person|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row"><span>Suggested price ({% if costing %}{{ costing.target_margin_percent }}{% else %}—{% endif %}% margin)</span><span data-cost-suggested>{% if costing %}{{ costing.suggested_price|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row total"><span>Selling / traveler</span><span data-cost-selling>{% if costing %}{{ costing.selling_price|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row"><span>Profit / traveler at full seats</span><span data-cost-profit>{% if costing %}{{ costing.profit_per_person|money }}{% else %}—{% endif %}</span></div>
+        <div class="fin-row"><span>Break-even</span><span data-cost-breakeven>{% if costing.break_even_pax %}{{ costing.break_even_pax }} travelers{% else %}—{% endif %}</span></div>
+    </div>
+    <p class="note cost-warn" data-cost-warn {% if costing.below_cost %}{% else %}hidden{% endif %}>This selling price is below estimated land cost. Raise the price or the margin, or check the supplier estimates.</p>
+    {% if live %}
+    <p style="margin-top:.7rem">
+        <button class="btn btn-ghost" type="button" data-apply-suggested>Use suggested price</button>
+    </p>
+    {% endif %}
+    {% if costing.booked and costing.land_cost_at_booked != None %}
+    <p class="muted" style="margin-top:.7rem">With {{ costing.booked }} booked, land cost is {{ costing.land_cost_at_booked|money }}/traveler because coach and guide stay fixed. Estimated result at current seats: {{ costing.profit_at_booked|money }}.</p>
+    {% endif %}
+{% if plain %}
+</div>
+{% else %}
+</section>
+{% endif %}

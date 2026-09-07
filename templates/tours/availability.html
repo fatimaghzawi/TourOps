@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Seat availability</h1>
+    </div>
+    <div class="actions"><a class="btn btn-warm" href="{% url 'tours:create' %}">New tour</a></div>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Tour</th><th>Dates</th><th>Capacity</th><th>Booked</th><th>Available</th><th></th><th></th></tr></thead>
+        <tbody>
+        {% for t in tours %}
+        <tr>
+            <td><a href="{% url 'tours:detail' t.id %}">{{ t.name }}</a></td>
+            <td>{{ t.dates }}</td>
+            <td>{{ t.capacity }}</td>
+            <td>{{ t.booked }}</td>
+            <td><strong>{{ t.available }}</strong></td>
+            <td style="min-width:140px">{% include "components/capacity_bar.html" with pct=t.pct %}</td>
+            <td class="row-actions">
+                {% url 'tours:detail' t.id as view_url %}
+                {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                {% url 'tours:edit' t.id as edit_url %}
+                {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+                {% if t.can_take_bookings %}
+                <a class="ico-btn is-primary" href="{% url 'bookings:create' %}?tour_id={{ t.id }}" title="Add booking" aria-label="Add booking">
+                    {% include "components/ico_mark.html" with icon="book" %}
+                </a>
+                {% else %}
+                <a class="ico-btn" href="{% url 'tours:detail' t.id %}?tab=reservations" title="Waiting on suppliers" aria-label="Waiting on suppliers">
+                    {% include "components/ico_mark.html" with icon="calendar" %}
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">
+                {% url 'tours:create' as tour_create_url %}
+                {% include "components/empty_state.html" with title="No departures" body="Create a tour to see live seat counts." cta="New tour" cta_url=tour_create_url %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

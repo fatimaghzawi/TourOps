@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ record.number }}</h1>
+        <p>{{ record.customer }} · {{ record.booking }}</p>
+    </div>
+</div>
+
+<div class="stepper">
+    {% if record.status == 'REJECTED' %}
+        <div class="step is-done">Pending</div>
+        <div class="step is-dead is-now">Rejected</div>
+    {% else %}
+        <div class="step {% if record.status != 'PENDING' %}is-done{% else %}is-now{% endif %}">Pending</div>
+        <div class="step {% if record.status == 'APPROVED' or record.status == 'COMPLETED' %}is-done{% endif %} {% if record.status == 'APPROVED' %}is-now{% endif %}">Approved</div>
+        <div class="step {% if record.status == 'COMPLETED' %}is-done is-now{% endif %}">Completed</div>
+    {% endif %}
+</div>
+
+<div class="two-col">
+    <div class="stack">
+        <section class="panel">
+            <h2>{% if record.status == 'COMPLETED' %}Refund{% else %}Request{% endif %}</h2>
+            <p style="margin-top:.6rem">{{ record.reason }}</p>
+            <p class="muted" style="margin-top:.5rem">Requested {{ record.requested }}</p>
+        </section>
+        <section class="panel">
+            <h2>Customer & booking</h2>
+            <dl class="kv" style="margin-top:.6rem">
+                <dt>Customer</dt><dd>{{ record.customer }}</dd>
+                <dt>Booking</dt><dd>{{ record.booking }}</dd>
+                <dt>Original payment</dt><dd>{{ record.payment }}</dd>
+            </dl>
+        </section>
+        {% if record.status == 'COMPLETED' %}
+        <section class="panel">
+            <h2>Payment history</h2>
+            <p class="ledger-in" style="margin-top:.5rem">Payment +{{ record.original|money }}</p>
+            <p class="ledger-out">Refund −{{ record.amount|money }}</p>
+            <p><strong>Net received {{ record.refundable|default:500|money }}</strong></p>
+        </section>
+        {% endif %}
+    </div>
+    <div>
+        <div class="fin">
+            <div class="fin-row"><span>Original payment</span><span>{{ record.original|money }}</span></div>
+            <div class="fin-row"><span>Previously refunded</span><span>{{ record.already|money }}</span></div>
+            <div class="fin-row remain"><span>{% if record.status == 'COMPLETED' %}Refunded{% else %}Requested refund{% endif %}</span><span>{{ record.amount|money }}</span></div>
+            <div class="fin-row total"><span>Remaining refundable</span><span>{{ record.refundable|money }}</span></div>
+        </div>
+        <div class="actions" style="margin-top:.8rem">
+            {% if can_decide and record.status == 'PENDING' %}
+                <form method="post" action="{% url 'refunds:approve' record.id %}">{% csrf_token %}
+                    <button class="btn btn-ok" type="submit">Approve</button>
+                </form>
+                <form method="post" action="{% url 'refunds:reject' record.id %}">{% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Reject</button>
+                </form>
+            {% elif can_decide and record.status == 'APPROVED' %}
+                <form method="post" action="{% url 'refunds:complete' record.id %}">{% csrf_token %}
+                    <button class="btn btn-warm" type="submit">Mark as completed</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

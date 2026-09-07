@@ -1,0 +1,89 @@
+:root {
+    --primary: #2563EB;
+    --secondary: #0D1B2A;
+    --accent: #14B8A6;
+    --primary-fg: #ffffff;
+    --body-fg: #0D1B2A;
+    --body-bg: #F4F7FB;
+    --header-bg: #0D1B2A;
+    --header-color: #F8FAFC;
+    --header-link-color: #CBD5E1;
+    --breadcrumbs-bg: #12263A;
+    --breadcrumbs-fg: #CBD5E1;
+    --link-fg: #2563EB;
+    --link-hover-color: #1D4ED8;
+    --hairline-color: #E2E8F0;
+    --border-color: #E2E8F0;
+    --selected-bg: #EFF6FF;
+    --selected-row: #EFF6FF;
+    --button-bg: #2563EB;
+    --button-fg: #ffffff;
+    --button-hover-bg: #1D4ED8;
+    --default-button-bg: #0D1B2A;
+    --delete-button-bg: #DC2626;
+    --message-success-bg: #D1FAE5;
+    --message-warning-bg: #FEF3C7;
+    --message-error-bg: #FEE2E2;
+    --darkened-bg: #F8FAFC;
+}
+
+html, body, #container {
+    font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+}
+
+#header {
+    background: linear-gradient(180deg, #0D1B2A 0%, #12263A 100%);
+    color: #F8FAFC;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#branding h1, #branding h1 a, #site-name a {
+    color: #fff !important;
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 650;
+}
+
+.admin-brand-logo {
+    height: 36px;
+    width: auto;
+    vertical-align: middle;
+    margin-right: 0.6rem;
+}
+
+.admin-brand-text {
+    vertical-align: middle;
+}
+
+.admin-app-link {
+    color: #CBD5E1 !important;
+    font-size: 0.82rem;
+    font-weight: 650;
+    margin-right: 1rem;
+}
+
+#user-tools {
+    color: #94A3B8;
+}
+
+.module h2, .module caption, .inline-group h2 {
+    background: #0D1B2A;
+    color: #fff;
+}
+
+div.breadcrumbs {
+    background: #12263A;
+    color: #CBD5E1;
+}
+
+.object-tools a, input[type="submit"], .button, .submit-row input {
+    border-radius: 8px;
+}
+
+#changelist-form .results table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.object-tools a.addlink {
+    background: #2563EB;
+}

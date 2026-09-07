@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="tiny">{{ record.code }}</p>
+        <h1>{{ record.name }}</h1>
+        <p>{{ record.city }}{% if record.country %} · {{ record.country }}{% endif %} · {{ record.duration }}</p>
+    </div>
+    <div class="actions">
+        {% include "components/status_badge.html" with status=record.status %}
+        {% url 'packages:edit' record.id as edit_url %}
+        {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+        {% if record.status == 'ACTIVE' %}
+        <a class="ico-btn is-primary" href="{% url 'tours:create' %}?package_id={{ record.id }}" title="Create tour" aria-label="Create tour">
+            {% include "components/ico_mark.html" with icon="calendar" %}
+        </a>
+        {% else %}
+        <button class="ico-btn" type="button" disabled title="Activate this package before creating a departure" aria-label="Create tour">
+            {% include "components/ico_mark.html" with icon="calendar" %}
+        </button>
+        {% endif %}
+        {% if not record.tours %}
+        {% url 'packages:delete' record.id as delete_url %}
+        {% include "components/ico_btn.html" with action=delete_url title="Delete" icon="delete" danger=1 confirm="Tours already created from this package keep their snapshot. New departures will need another product." confirm_title="Retire this package?" confirm_ok="Delete package" %}
+        {% endif %}
+    </div>
+</div>
+<div class="two-col">
+    <div class="stack">
+        <section class="panel">
+            <h2>Included</h2>
+            <p style="margin-top:.5rem">{{ record.includes|default:"—" }}</p>
+        </section>
+        <section class="panel">
+            <h2>Excluded</h2>
+            <p style="margin-top:.5rem">{{ record.excluded|default:"—" }}</p>
+        </section>
+        <section class="panel">
+            <h2>Supplier services</h2>
+            <div class="itinerary" style="margin-top:.7rem">
+                {% for line in record.services %}
+                <div class="it-block">
+                    <div>
+                        <strong>{{ line.title }}</strong>
+                        <div class="muted">{{ line.supplier }} · {{ line.type_label }}</div>
+                    </div>
+                    <div>Est. {{ line.est|money }} {{ line.basis_label }}</div>
+                </div>
+                {% empty %}
+                <p class="muted" style="margin-top:.5rem">No supplier services selected. <a href="{% url 'packages:edit' record.id %}">Add services from the catalog</a>.</p>
+                {% endfor %}
+            </div>
+        </section>
+        <section class="panel">
+            <h2>Departures</h2>
+            {% for tour in record.tours %}
+                <p style="margin-top:.45rem"><a href="{% url 'tours:detail' tour.id %}">{{ tour.name }}</a> · {{ tour.dates }} · {{ tour.status|labelize }}</p>
+            {% empty %}
+                <p class="muted" style="margin-top:.5rem">No dated tours yet. <a href="{% url 'tours:create' %}?package_id={{ record.id }}">Create a tour from this package</a>.</p>
+            {% endfor %}
+        </section>
+    </div>
+    {% include "components/cost_sheet.html" with costing=record.costing heading="Cost sheet" %}
+</div>
+{% endblock %}

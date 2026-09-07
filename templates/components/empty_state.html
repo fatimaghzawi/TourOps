@@ -1,0 +1,8 @@
+<div class="empty">
+    <p class="tiny">{{ eyebrow|default:"Nothing here yet" }}</p>
+    <h2 style="margin:.35rem 0 .4rem">{{ title }}</h2>
+    <p>{{ body }}</p>
+    {% if cta_url %}
+        <p style="margin-top:1rem"><a class="btn btn-warm" href="{{ cta_url }}">{{ cta }}</a></p>
+    {% endif %}
+</div>

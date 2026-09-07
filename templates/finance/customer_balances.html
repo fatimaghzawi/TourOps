@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Customer Balances</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'finance:receivables' %}{{ query }}">Open invoices</a>
+</div>
+{% include "finance/_nav.html" %}
+
+{% if report %}
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Open invoices</th>
+                <th>Balance</th>
+                <th>Flags</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in report.customers %}
+            <tr>
+                <td>
+                    {% if row.customer_id %}
+                    <a href="{% url 'customers:detail' row.customer_id %}"><strong>{{ row.customer }}</strong></a>
+                    {% else %}
+                    <strong>{{ row.customer }}</strong>
+                    {% endif %}
+                </td>
+                <td>{{ row.count }}</td>
+                <td>
+                    {% if row.outstanding %}
+                    <strong class="ledger-out">{{ row.outstanding|money }}</strong>
+                    {% else %}
+                    <strong>{{ row.outstanding|money }}</strong>
+                    {% endif %}
+                </td>
+                <td>{% if row.overdue %}<span class="badge b-bad">OVERDUE</span>{% else %}<span class="badge b-ok">CURRENT</span>{% endif %}</td>
+                <td class="row-actions">
+                    {% if row.customer_id %}
+                    {% url 'customers:detail' row.customer_id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">
+                    {% include "components/empty_state.html" with title="No customer balances" body="Customers with open invoice balances will appear here." %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="callout callout-info" style="margin-top:1rem">
+    Balances are calculated live. Do not store editable balances.
+</div>
+{% endblock %}

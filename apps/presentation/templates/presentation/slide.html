@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ scene.title|default:"Istanbul Escape" }} · {{ slide }}/{{ total }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body {
+            font-family: "Segoe UI", sans-serif;
+            color: #e8edf5;
+            background: #10151c;
+        }
+        a { color: inherit; text-decoration: none; }
+        .room {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1.6rem 2.2rem 1.4rem;
+        }
+        .mast {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 0 0 auto;
+            padding: 0 0.2rem 0.75rem;
+        }
+        .seal {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 0.28rem 0.55rem;
+            border-radius: 999px;
+            background: #334155;
+        }
+        .seal.is-agent { background: #1d4ed8; }
+        .seal.is-accountant { background: #0f766e; }
+        .seal.is-owner { background: #c2410c; }
+        h1 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 650;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .roles { display: flex; gap: 0.85rem; font-size: 0.75rem; font-weight: 700; color: #8b96a8; }
+        .roles a.is-now { color: #fff; }
+        .count { font-variant-numeric: tabular-nums; font-weight: 700; color: #8b96a8; }
+        .nav { display: flex; gap: 0.4rem; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 4.6rem; height: 1.9rem; padding: 0 0.75rem;
+            border-radius: 8px; font-weight: 700; font-size: 0.8rem;
+            border: 1px solid #3b4554; background: transparent; color: #e8edf5;
+        }
+        .btn.is-next { background: #e8edf5; color: #10151c; border-color: #e8edf5; }
+        .btn.is-off { visibility: hidden; }
+        .stage {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .shot {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4);
+        }
+        .shot-cap {
+            flex: 0 0 auto;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.8rem;
+            background: #1e293b;
+            color: #e8edf5;
+        }
+        .screen { flex: 1; min-height: 0; overflow: auto; }
+        iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            border: 0;
+            background: #fff;
+        }
+        .warn { margin: auto; max-width: 36rem; color: #e8edf5; }
+        .warn p { color: #8b96a8; }
+    </style>
+</head>
+<body>
+    {{ cast|json_script:"demo-cast" }}
+    <div class="room">
+        <header class="mast">
+            <span class="seal is-{{ scene.stage|default:'agent' }}">{{ role }}</span>
+            <h1>{% if error %}Cannot start{% else %}{{ scene.title }}{% endif %}</h1>
+            <nav class="roles" aria-label="Roles">
+                {% for step in steps %}
+                <a class="is-{{ step.state }}" href="?s={{ step.slide }}">{{ step.label }}</a>
+                {% endfor %}
+            </nav>
+            <div class="count">{{ slide }} / {{ total }}</div>
+            <div class="nav">
+                {% if prev %}<a class="btn" href="?s={{ prev }}">Back</a>{% else %}<span class="btn is-off">Back</span>{% endif %}
+                {% if next %}<a class="btn is-next" href="?s={{ next }}">Next</a>{% elif not error %}<a class="btn is-next" href="{% url 'presentation:stop' %}">Finish</a>{% endif %}
+            </div>
+        </header>
+        {% if error %}
+        <div class="warn">
+            <p>{{ error }}</p>
+            <p>In DEBUG, run <code>python manage.py seed_istanbul_escape</code> then refresh.</p>
+        </div>
+        {% else %}
+        <div class="stage" style="--n: {{ panes|length }}">
+            {% for pane in panes %}
+            <article class="shot">
+                {% if pane.label %}<div class="shot-cap">{{ pane.label }}</div>{% endif %}
+                <div class="screen">
+                    <iframe src="{{ pane.path }}" title="{{ pane.label|default:scene.title }}"></iframe>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% if not error %}
+    <script>
+    (function () {
+        var node = document.getElementById("demo-cast");
+        var cast = {};
+        try { cast = JSON.parse(node.textContent); } catch (err) { cast = {}; }
+
+        function set(doc, name, value) {
+            if (value === undefined || value === null || value === "") return;
+            var el = doc.querySelector('[name="' + name + '"]');
+            if (!el) return;
+            if (el.type === "radio" || el.type === "checkbox") {
+                var match = doc.querySelector('[name="' + name + '"][value="' + value + '"]');
+                if (match && !match.checked) match.checked = true;
+                return;
+            }
+            if (el.value) return;
+            el.value = value;
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        function fillTravelers(doc) {
+            var first = doc.querySelector('[name="traveler_0_first"]');
+            if (!first) return;
+            if (!first.value) {
+                set(doc, "traveler_0_first", cast.maya_first);
+                set(doc, "traveler_0_last", cast.maya_last);
+                set(doc, "traveler_0_passport", cast.maya_passport);
+                set(doc, "traveler_0_nationality", cast.maya_nationality);
+            }
+            var second = doc.querySelector('[name="traveler_1_first"]');
+            if (!second) {
+                var add = doc.querySelector("[data-guest-add]");
+                if (add) add.click();
+                second = doc.querySelector('[name="traveler_1_first"]');
+            }
+            if (second && !second.value) {
+                set(doc, "traveler_1_first", cast.companion_first);
+                set(doc, "traveler_1_last", cast.companion_last);
+                set(doc, "traveler_1_passport", cast.companion_passport);
+                set(doc, "traveler_1_nationality", cast.companion_nationality);
+            }
+        }
+
+        function confirmFor(path) {
+            if (cast.hotel_res_id && path.indexOf(cast.hotel_res_id) !== -1) return cast.hotel_confirm;
+            if (cast.guide_res_id && path.indexOf(cast.guide_res_id) !== -1) return cast.guide_confirm;
+            if (cast.transport_res_id && path.indexOf(cast.transport_res_id) !== -1) return cast.transport_confirm;
+            return cast.hotel_confirm;
+        }
+
+        function fill(frame) {
+            var doc = frame.contentDocument;
+            if (!doc || !doc.body) return;
+            var path = (frame.getAttribute("src") || "") + (doc.location ? doc.location.pathname : "");
+            set(doc, "first_name", cast.maya_first);
+            set(doc, "last_name", cast.maya_last);
+            set(doc, "email", cast.maya_email);
+            set(doc, "phone", cast.maya_phone);
+            set(doc, "city", cast.maya_city);
+            set(doc, "country", cast.maya_country);
+            set(doc, "passport", cast.maya_passport);
+            set(doc, "nationality", cast.maya_nationality);
+            set(doc, "customer_id", cast.customer_id);
+            set(doc, "tour_id", cast.tour_id);
+            set(doc, "confirmation_number", confirmFor(path));
+            set(doc, "extra_note", "Please confirm 15 twins for Istanbul Escape, 15–20 Sep. Guest of record: Maya Hassan.");
+            set(doc, "invoice_id", cast.invoice_id);
+            set(doc, "method", "BANK_TRANSFER");
+            set(doc, "payment_method", "BANK_TRANSFER");
+            set(doc, "payment_id", cast.payment_id);
+            set(doc, "policy_tier", "30_PLUS");
+            set(doc, "refund_method", "BANK_TRANSFER");
+            set(doc, "reason", cast.refund_reason);
+            if (path.indexOf("/customers/") !== -1) set(doc, "notes", cast.maya_notes);
+            if (path.indexOf("/bookings/") !== -1) set(doc, "notes", cast.booking_notes);
+            if (path.indexOf("/payments/new") !== -1) {
+                set(doc, "amount", cast.partial_amount);
+                set(doc, "reference_number", cast.deposit_ref);
+                set(doc, "notes", cast.pay_notes);
+            }
+            if (path.indexOf("/supplier-payments/") !== -1) {
+                set(doc, "expense_id", cast.hotel_expense_id);
+                set(doc, "reference_number", cast.hotel_pay_ref);
+                set(doc, "notes", cast.hotel_pay_notes);
+                set(doc, "payment_date", "2026-09-06");
+            }
+            fillTravelers(doc);
+        }
+
+        document.querySelectorAll("iframe").forEach(function (frame) {
+            frame.addEventListener("load", function () { fill(frame); });
+        });
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>

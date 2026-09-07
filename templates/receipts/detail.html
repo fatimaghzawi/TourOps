@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="print-actions">
+    <button class="btn btn-warm" type="button" onclick="window.print()">Print</button>
+    <button class="btn btn-ghost" type="button">Download PDF</button>
+</div>
+<div class="invoice-sheet">
+    <div class="inv-top">
+        <div>
+            <div class="inv-brand">{{ brand.name }}</div>
+            <p class="muted">
+                {% if brand.address %}{{ brand.address|linebreaksbr }}{% endif %}
+                {% if brand.email %}{% if brand.address %}<br>{% endif %}{{ brand.email }}{% endif %}
+            </p>
+        </div>
+        <div style="text-align:right">
+            <h1>{{ record.number }}</h1>
+        </div>
+    </div>
+    <dl class="kv">
+        <dt>Customer</dt><dd>{{ record.customer }}</dd>
+        <dt>Invoice</dt><dd>{{ record.invoice }}</dd>
+        <dt>Payment</dt><dd>{{ record.payment }}</dd>
+        <dt>Date</dt><dd>{{ record.issued }}</dd>
+        <dt>Method</dt><dd>{{ record.method }}</dd>
+        <dt>Amount</dt><dd><strong>{{ record.amount|money }}</strong></dd>
+        <dt>Issued by</dt><dd>{{ record.by }}</dd>
+    </dl>
+</div>
+{% endblock %}

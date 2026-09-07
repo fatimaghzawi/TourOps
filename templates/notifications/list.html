@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Notifications</h1>
+        <p>{% if unread_count_page %}{{ unread_count_page }} unread.{% else %}You're up to date.{% endif %}</p>
+    </div>
+    <div class="actions">
+        <form method="post" action="{% url 'notifications:read_all' %}">
+            {% csrf_token %}
+            <button class="btn btn-ghost" type="submit">Mark all as read</button>
+        </form>
+    </div>
+</div>
+<form class="filter-bar" method="get" data-autosubmit>
+    <label>Type
+        <select class="field" name="type">
+            <option value="">All types</option>
+            {% for value, label in type_choices %}
+            <option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Status
+        <select class="field" name="unread">
+            <option value="">All</option>
+            <option value="1" {% if filters.unread %}selected{% endif %}>Unread only</option>
+        </select>
+    </label>
+    <div class="filter-actions">
+        {% if filters.type or filters.unread %}
+        <a class="btn btn-ghost" href="{% url 'notifications:list' %}">Clear</a>
+        {% endif %}
+    </div>
+</form>
+{% regroup notifications by when as groups %}
+{% if notifications %}
+<div class="inbox">
+    {% for group in groups %}
+    <div class="inbox-group"><p class="tiny">{{ group.grouper }}</p></div>
+    {% for n in group.list %}
+    <a class="inbox-row {% if n.unread %}is-unread{% endif %}" href="{% url 'notifications:open' n.id %}">
+        <span class="inbox-dot" aria-hidden="true"></span>
+        <div>
+            <h2>{{ n.title }}</h2>
+            <p>{{ n.body }}</p>
+        </div>
+        <div class="inbox-side">
+            <span class="badge {{ n.badge }}">{{ n.type_label }}</span>
+            {% if n.time_display %}<time>{{ n.time_display }}</time>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+    {% endfor %}
+</div>
+{% else %}
+<section class="panel">
+    {% include "components/empty_state.html" with title="No notifications" body="Activity from payments, expenses, refunds, and file uploads will show up here." %}
+</section>
+{% endif %}
+{% endblock %}

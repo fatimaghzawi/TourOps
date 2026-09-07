@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Customers</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'customers:create' %}">New customer</a>
+    </div>
+</div>
+
+<div class="filters" data-live-filters>
+    <input class="field" type="search" data-live-q value="{{ q }}" placeholder="Search name, email, phone or CUS number…" style="min-width:220px" autocomplete="off">
+    <select class="field" data-live-field="status">
+        <option value="">All statuses</option>
+        <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active</option>
+        <option value="INACTIVE" {% if status_filter == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+    </select>
+</div>
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for c in customers %}
+            <tr data-live-row data-status="{{ c.status }}" data-search="{{ c.name }} {{ c.number }} {{ c.email }} {{ c.phone }} {{ c.city }}">
+                <td>
+                    <a href="{% url 'customers:detail' c.id %}"><strong>{{ c.name }}</strong></a>
+                    <div class="mono muted">{{ c.number }}</div>
+                </td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.phone|default:"—" }}</td>
+                <td>{{ c.city|default:"—" }}</td>
+                <td>{% include "components/status_badge.html" with status=c.status %}</td>
+                <td class="row-actions">
+                    {% url 'customers:detail' c.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% url 'customers:edit' c.id as edit_url %}
+                    {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+                    <a class="ico-btn" href="{% url 'bookings:create' %}?customer_id={{ c.id }}" title="Create booking" aria-label="Create booking">
+                        {% include "components/ico_mark.html" with icon="book" %}
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">
+                    {% url 'customers:create' as create_url %}
+                    {% include "components/empty_state.html" with title="No customers yet" body="Add a traveler before you can book a tour." cta="New customer" cta_url=create_url %}
+                </td>
+            </tr>
+        {% endfor %}
+            <tr data-live-empty hidden>
+                <td colspan="6"><p class="muted" style="margin:.8rem">No customers match.</p></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

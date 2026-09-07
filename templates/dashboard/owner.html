@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="vault">
+    <section class="vault-hero {% if dash and dash.revenue.profit < 0 %}is-down{% endif %}">
+        <div class="vault-hero-top">
+            <div>
+                <p class="tiny">{{ today_label }}</p>
+                <h1>{{ greeting }}, {{ greeting_name }}</h1>
+            </div>
+            <form method="get" data-autosubmit>
+                <label class="tiny">Month
+                    <input class="field" type="month" name="month" value="{{ filters.month }}">
+                </label>
+            </form>
+        </div>
+        {% if dash %}
+        <div class="vault-profit">
+            <span class="vault-coin" aria-hidden="true">$</span>
+            <div>
+                <span class="tiny">Gross profit</span>
+                <strong>{{ dash.revenue.profit|money }}</strong>
+                <p>Margin {{ dash.margin_pct }}% · Revenue {{ dash.revenue.revenue|money }} · Costs {{ dash.revenue.costs|money }}</p>
+            </div>
+        </div>
+        {% with basis=dash.revenue.revenue %}
+        <div class="vault-mix" role="img" aria-label="Revenue split into costs and profit">
+            <span class="is-cost" style="width:{{ dash.revenue.costs|width_pct:basis }}%"></span>
+            <span class="is-gain" style="width:{{ dash.revenue.profit|width_pct:basis }}%"></span>
+        </div>
+        {% endwith %}
+        {% endif %}
+    </section>
+
+    {% if dash %}
+    {% with flow=dash.summary.money_in|add_money:dash.summary.money_out %}
+    <div class="vault-till">
+        <a class="vault-bill is-in" href="{% url 'reports:payments' %}">
+            <div class="bill-stack" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span class="tiny">Cash in</span>
+            <b>{{ dash.summary.money_in|money }}</b>
+            <div class="vault-fill"><i style="width:{{ dash.summary.money_in|width_pct:flow }}%"></i></div>
+        </a>
+        <div class="vault-bill is-net {% if dash.summary.net < 0 %}is-down{% endif %}">
+            <div class="vault-brick" aria-hidden="true"></div>
+            <span class="tiny">Net cash</span>
+            <b>{{ dash.summary.net|money }}</b>
+        </div>
+        <a class="vault-bill is-out" href="{% url 'reports:transactions' %}">
+            <div class="bill-stack is-out" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span class="tiny">Cash out</span>
+            <b>{{ dash.summary.money_out|money }}</b>
+            <div class="vault-fill"><i style="width:{{ dash.summary.money_out|width_pct:flow }}%"></i></div>
+        </a>
+    </div>
+    {% endwith %}
+
+    {% with books=dash.summary.receivables.total|add_money:dash.summary.payables.total %}
+    <div class="vault-pockets">
+        <a class="vault-pocket is-ar" href="{% url 'finance:receivables' %}">
+            <span class="vault-coin sm" aria-hidden="true">$</span>
+            <div>
+                <span class="tiny">Receivables</span>
+                <b>{{ dash.summary.receivables.total|money }}</b>
+                <small>Still to collect · {{ dash.summary.receivables.count|default:0 }} open</small>
+                <div class="vault-fill"><i style="width:{{ dash.summary.receivables.total|width_pct:books }}%"></i></div>
+            </div>
+        </a>
+        <a class="vault-pocket is-ap" href="{% url 'finance:payables' %}">
+            <span class="vault-coin sm is-pay" aria-hidden="true">$</span>
+            <div>
+                <span class="tiny">Payables</span>
+                <b>{{ dash.summary.payables.total|money }}</b>
+                <small>Still to pay · {{ dash.summary.payables.count|default:0 }} open</small>
+                <div class="vault-fill"><i style="width:{{ dash.summary.payables.total|width_pct:books }}%"></i></div>
+            </div>
+        </a>
+        <a class="vault-pocket is-heat" href="{% url 'finance:receivables' %}">
+            <span class="tiny">Overdue AR</span>
+            <b>{{ dash.overdue_ar_total|money }}</b>
+            <small>{{ dash.overdue_ar_count|default:0 }} invoices past due</small>
+        </a>
+        <a class="vault-pocket is-heat" href="{% url 'finance:payables' %}">
+            <span class="tiny">Overdue AP</span>
+            <b>{{ dash.overdue_ap_total|money }}</b>
+            <small>{{ dash.overdue_ap_count|default:0 }} bills past due</small>
+        </a>
+    </div>
+    {% endwith %}
+
+    {% if desk %}
+    <div class="vault-ops">
+        <a href="{% url 'supplier_reservations:list' %}?status=REQUESTED"><span class="tiny">Requested</span><b>{{ desk.requested|default:0 }}</b></a>
+        <a href="{% url 'supplier_reservations:list' %}?status=CONFIRMED"><span class="tiny">Confirmed</span><b>{{ desk.confirmed|default:0 }}</b></a>
+        <a href="{% url 'tours:list' %}"><span class="tiny">Upcoming</span><b>{{ desk.upcoming|default:0 }}</b></a>
+        <a href="{% url 'dashboard:agent' %}"><span class="tiny">Release watch</span><b>{{ desk.release_watch|length }}</b></a>
+    </div>
+    {% endif %}
+
+    <div class="dash-grid">
+        {% include "dashboard/_attention.html" %}
+        <section class="dash-card is-flush vault-sheet">
+            <div class="panel-h">
+                <h2>Tour margin</h2>
+                <a class="tiny" href="{% url 'reports:profitability' %}">Tour profitability</a>
+            </div>
+            <table class="fin-tours">
+                <thead>
+                    <tr><th>Tour</th><th>Margin</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for t in dash.top_tours %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'reports:profitability' %}?tour={{ t.id }}{% if filters.month %}&month={{ filters.month }}{% endif %}">{{ t.name }}</a>
+                        </td>
+                        <td class="mono">{{ t.margin }}%</td>
+                        <td><div class="track"><i style="width:{% if t.margin %}{{ t.margin }}{% else %}0{% endif %}%"></i></div></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3"><p class="muted" style="margin:.7rem">No tour profitability yet.</p></td></tr>
+                {% endfor %}
+                {% for t in dash.low_tours %}
+                    {% if forloop.first and dash.top_tours %}
+                    <tr class="fin-watch"><td colspan="3">Watch these</td></tr>
+                    {% endif %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'reports:profitability' %}?tour={{ t.id }}{% if filters.month %}&month={{ filters.month }}{% endif %}">{{ t.name }}</a>
+                        </td>
+                        <td class="mono">{{ t.margin }}%</td>
+                        <td><div class="track low"><i style="width:{% if t.margin %}{{ t.margin }}{% else %}0{% endif %}%"></i></div></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    {% include "dashboard/_ledger.html" %}
+    {% else %}
+    {% include "components/empty_state.html" with title="Dashboard unavailable" body="Start MongoDB and refresh to load live owner KPIs." %}
+    {% endif %}
+</div>
+{% endblock %}

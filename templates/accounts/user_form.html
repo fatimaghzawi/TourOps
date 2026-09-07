@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Who they are</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.first_name %}
+            {% include "components/form_field.html" with field=form.last_name %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.email %}
+            {% include "components/form_field.html" with field=form.phone %}
+        </div>
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Access</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.role %}
+        {% include "components/form_field.html" with field=form.password %}
+        {% include "components/form_field.html" with field=form.confirm_password caption="Confirm password" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">Create user</button>
+        <a class="btn btn-ghost" href="{% url 'accounts:users' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

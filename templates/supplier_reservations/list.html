@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Supplier reservations</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-warm" href="{% url 'supplier_reservations:create' %}">New reservation</a>
+    </div>
+</div>
+
+<div class="metrics-4">
+    <div class="metric"><span class="tiny">Requested</span><b>{{ desk.requested|default:0 }}</b></div>
+    <div class="metric"><span class="tiny">Confirmed</span><b>{{ desk.confirmed|default:0 }}</b></div>
+    <div class="metric"><span class="tiny">Upcoming</span><b>{{ desk.upcoming|default:0 }}</b></div>
+    <div class="metric"><span class="tiny">Release watch</span><b>{{ desk.release_watch|length }}</b></div>
+</div>
+
+{% if desk.release_watch %}
+<div class="callout callout-warn" style="margin:1rem 0">
+    <strong>Release dates approaching</strong>
+    {% for r in desk.release_watch %}
+        <p>{{ r.supplier }} · {{ r.tour }} · {{ r.release }}{% if r.release_days is not None %} · {{ r.release_days }} day(s) remaining{% endif %}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="filters" data-live-filters>
+    <select class="field" data-live-field="tour">
+        <option value="">All tours</option>
+        {% for id, label in tours %}<option value="{{ id }}" {% if filters.tour_id == id %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <select class="field" data-live-field="supplier">
+        <option value="">All suppliers</option>
+        {% for id, label in suppliers %}<option value="{{ id }}" {% if filters.supplier_id == id %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <select class="field" data-live-field="type">
+        <option value="">All types</option>
+        {% for value, label in service_types.items %}<option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <select class="field" data-live-field="status">
+        <option value="">All statuses</option>
+        <option value="REQUESTED" {% if filters.status == 'REQUESTED' %}selected{% endif %}>Requested</option>
+        <option value="CONFIRMED" {% if filters.status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+    </select>
+</div>
+
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Reservation</th><th>Tour / supplier</th><th>Arrangement</th><th>Dates</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for r in reservations %}
+            <tr data-live-row data-tour="{{ r.tour_id }}" data-supplier="{{ r.supplier_id }}" data-type="{{ r.service_type }}" data-status="{{ r.status }}" data-search="{{ r.number }} {{ r.tour }} {{ r.supplier }} {{ r.service_label }} {{ r.confirmation_number }}">
+                <td><a class="mono" href="{% url 'supplier_reservations:detail' r.id %}"><strong>{{ r.number }}</strong></a></td>
+                <td>
+                    {% if r.tour_id %}<a href="{% url 'tours:detail' r.tour_id %}?tab=reservations">{{ r.tour }}</a>{% else %}{{ r.tour }}{% endif %}
+                    <div class="muted">{{ r.supplier }} · {{ r.service_label }}</div>
+                </td>
+                <td>
+                    {{ r.service_label }}
+                    {% if r.quantity %}<div class="muted">{{ r.quantity }}</div>{% endif %}
+                    {% if r.confirmation_number %}<div class="tiny">Confirmation {{ r.confirmation_number }}</div>{% endif %}
+                </td>
+                <td>{{ r.dates }}</td>
+                <td>{% include "components/status_badge.html" with status=r.status %}</td>
+                <td class="row-actions">
+                    {% url 'supplier_reservations:detail' r.id as view_url %}
+                    {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+                    {% if not r.is_cancelled %}
+                    {% url 'supplier_reservations:edit' r.id as edit_url %}
+                    {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+                    {% endif %}
+                    {% if r.is_requested %}
+                    <a class="ico-btn" href="{% url 'supplier_reservations:detail' r.id %}#confirm" title="Record confirmation" aria-label="Record confirmation">
+                        {% include "components/ico_mark.html" with icon="check" %}
+                    </a>
+                    {% endif %}
+                    <a class="ico-btn" href="{% url 'supplier_reservations:email' r.id %}" title="Email supplier" aria-label="Email supplier">
+                        {% include "components/ico_mark.html" with icon="mail" %}
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">{% url 'supplier_reservations:create' as create_url %}{% include "components/empty_state.html" with title="No supplier reservations yet" body="Arrange a hotel block or other vendor for a tour after contacting them outside TourOps." cta="New reservation" cta_url=create_url %}</td></tr>
+        {% endfor %}
+            <tr data-live-empty hidden>
+                <td colspan="6"><p class="muted" style="margin:.8rem">No reservations match.</p></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

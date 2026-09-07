@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="bazaar dash">
+    <header class="bazaar-mast">
+        <div>
+            <p class="tiny">{{ today_label }}</p>
+            <h1>{{ greeting }}, {{ greeting_name }}</h1>
+        </div>
+        <div class="actions">
+            <a class="btn btn-warm" href="{% url 'bookings:create' %}">New booking</a>
+            <a class="btn btn-ghost" href="{% url 'bookings:list' %}">Bookings</a>
+            <a class="btn btn-ghost" href="{% url 'tours:list' %}">Open tours</a>
+        </div>
+    </header>
+
+    {% include "components/product_setup.html" %}
+
+    <div class="bazaar-tiles">
+        <a class="bazaar-tile" href="{% url 'supplier_reservations:list' %}?status=REQUESTED" style="color:inherit">
+            <span class="mark clay">RQ</span>
+            <div>
+                <span class="tiny">Requested</span>
+                <b>{{ desk.requested|default:0 }}</b>
+            </div>
+        </a>
+        <a class="bazaar-tile" href="{% url 'supplier_reservations:list' %}?status=CONFIRMED" style="color:inherit">
+            <span class="mark sea">OK</span>
+            <div>
+                <span class="tiny">Confirmed</span>
+                <b>{{ desk.confirmed|default:0 }}</b>
+            </div>
+        </a>
+        <article class="bazaar-tile">
+            <span class="mark">UP</span>
+            <div>
+                <span class="tiny">Upcoming</span>
+                <b>{{ desk.upcoming|default:0 }}</b>
+            </div>
+        </article>
+        <a class="bazaar-tile" href="{% url 'supplier_reservations:list' %}" style="color:inherit">
+            <span class="mark gold">!</span>
+            <div>
+                <span class="tiny">Accommodation alerts</span>
+                <b>{{ desk.shortage_count|default:0 }}</b>
+            </div>
+        </a>
+    </div>
+
+    {% include "dashboard/_ops.html" %}
+</div>
+{% endblock %}

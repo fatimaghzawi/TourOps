@@ -1,0 +1,47 @@
+{% load tourops %}
+<div class="dash-grid" style="margin-top:1rem">
+    <section class="dash-card is-flush">
+        <div class="panel-h">
+            <h2>Reservations awaiting confirmation</h2>
+            <a class="tiny" href="{% url 'supplier_reservations:list' %}?status=REQUESTED">View all</a>
+        </div>
+        {% for r in desk.awaiting %}
+        <a class="dash-ticket" href="{% url 'supplier_reservations:detail' r.id %}#confirm">
+            <span class="dash-stamp">SR</span>
+            <div>
+                <strong>{{ r.number }}</strong>
+                <em>{{ r.supplier }} · {{ r.tour }}</em>
+            </div>
+            {% include "components/status_badge.html" with status=r.status %}
+        </a>
+        {% empty %}
+        <p class="muted" style="padding:0.85rem 1.05rem 1rem">Nothing waiting. Confirmations are recorded by the travel agent after the supplier replies outside TourOps.</p>
+        {% endfor %}
+    </section>
+
+    <div class="stack">
+        <section class="dash-card">
+            <div class="panel-h">
+                <h2>Hotel reservations</h2>
+                <a class="tiny" href="{% url 'supplier_reservations:list' %}?type=HOTEL">View hotels</a>
+            </div>
+        </section>
+
+        <section class="dash-card">
+            <div class="panel-h">
+                <h2>Upcoming release dates</h2>
+            </div>
+            {% for r in desk.release_watch %}
+            <a class="dash-ticket" href="{% url 'supplier_reservations:detail' r.id %}">
+                <span class="dash-stamp">RD</span>
+                <div>
+                    <strong>{{ r.supplier }}</strong>
+                    <em>{{ r.tour }} · {{ r.release }}{% if r.release_days is not None %} · {{ r.release_days }} day(s){% endif %}</em>
+                </div>
+            </a>
+            {% empty %}
+            <p class="muted">No release dates approaching.</p>
+            {% endfor %}
+        </section>
+    </div>
+</div>

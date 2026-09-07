@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ page_heading }}</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>What this bill is for</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.expense_scope caption="Scope" %}
+            {% include "components/form_field.html" with field=form.category %}
+        </div>
+        {% include "components/form_field.html" with field=form.supplier_id caption="Supplier" %}
+        <div data-tour-row>
+            {% include "components/form_field.html" with field=form.tour_id caption="Related tour" %}
+        </div>
+        {% include "components/form_field.html" with field=form.description %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Amount and dates</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.amount %}
+            {% include "components/form_field.html" with field=form.currency %}
+        </div>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.expense_date caption="Expense date" %}
+            {% include "components/form_field.html" with field=form.due_date caption="Due date" %}
+        </div>
+        {% include "components/form_field.html" with field=form.receipt_file caption="Receipt / invoice file" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">{{ submit_label|default:"Save expense" }}</button>
+        {% if record %}
+        <a class="btn btn-ghost" href="{% url 'expenses:detail' record.id %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'expenses:list' %}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const scope = document.querySelector('[name="expense_scope"]');
+    const tour = document.querySelector('[name="tour_id"]');
+    if (!scope || !tour) return;
+    const row = tour.closest("[data-tour-row]") || tour.closest(".form-field");
+    function sync() {
+        const isTour = scope.value === "TOUR";
+        tour.disabled = !isTour;
+        if (row) row.style.opacity = isTour ? "1" : "0.55";
+        if (!isTour) tour.value = "";
+    }
+    scope.addEventListener("change", sync);
+    sync();
+})();
+</script>
+{% endblock %}

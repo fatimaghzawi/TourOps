@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Tours</h1>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'availability:index' %}">Availability board</a>
+        <a class="btn btn-warm" href="{% url 'tours:create' %}">New tour</a>
+    </div>
+</div>
+
+<div class="cards">
+    {% for t in tours %}
+    <article class="t-card">
+        <a class="t-card-main" href="{% url 'tours:detail' t.id %}">
+            <div class="t-hero{% if t.cover %} has-photo{% endif %}">
+                {% if t.cover %}
+                <img src="{% url 'attachments:preview' t.cover.id %}" alt="{{ t.name }}">
+                {% endif %}
+                <div class="t-hero-copy">
+                    <small>{{ t.city }}{% if t.country %} · {{ t.country }}{% endif %}</small>
+                    <h2>{{ t.name }}</h2>
+                </div>
+            </div>
+            {% if t.gallery|length > 1 %}
+            <div class="t-thumbs">
+                {% for photo in t.gallery|slice:":4" %}
+                <img src="{% url 'attachments:preview' photo.id %}" alt="">
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="t-body">
+                <div class="muted" style="font-size:.84rem">{{ t.dates }}</div>
+                <div>
+                    <strong data-cap-label>{{ t.booked }} / {{ t.capacity }} seats</strong>
+                    <span class="muted"> · {{ t.pct }}% booked</span>
+                </div>
+                {% include "components/capacity_bar.html" with pct=t.pct %}
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span>{{ t.price|money }} / traveler</span>
+                    {% include "components/status_badge.html" with status=t.status %}
+                </div>
+                <div class="tiny" style="text-transform:none">Projected revenue {{ t.revenue|money }}</div>
+            </div>
+        </a>
+        <div class="card-actions">
+            {% url 'tours:detail' t.id as view_url %}
+            {% include "components/ico_btn.html" with href=view_url title="View" icon="view" %}
+            {% url 'tours:edit' t.id as edit_url %}
+            {% include "components/ico_btn.html" with href=edit_url title="Edit" icon="edit" %}
+            {% if t.can_take_bookings %}
+            <a class="ico-btn is-primary" href="{% url 'bookings:create' %}?tour_id={{ t.id }}" title="Add booking" aria-label="Add booking">
+                {% include "components/ico_mark.html" with icon="book" %}
+            </a>
+            {% else %}
+            <a class="ico-btn" href="{% url 'tours:detail' t.id %}?tab=reservations" title="Waiting on suppliers" aria-label="Waiting on suppliers">
+                {% include "components/ico_mark.html" with icon="calendar" %}
+            </a>
+            {% endif %}
+        </div>
+    </article>
+    {% empty %}
+    {% url 'tours:create' as tour_create_url %}
+    {% include "components/empty_state.html" with title="No tours yet" body="Create a dated departure from a package, then start taking bookings." cta="Create tour" cta_url=tour_create_url %}
+    {% endfor %}
+</div>
+{% endblock %}

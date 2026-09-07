@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Financial Reports</h1>
+    </div>
+    <form class="actions" method="get" data-autosubmit>
+        <input class="field" type="month" name="month" value="{{ filters.month }}">
+    </form>
+</div>
+
+{% if summary %}
+<div class="stat-row">
+    <article class="stat-tile stat-pulse">
+        <div class="stat-bars" aria-hidden="true">
+            <i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i>
+            <i style="height:90%"></i><i style="height:65%"></i>
+        </div>
+        <div class="stat-copy">
+            <span class="tiny">Revenue</span>
+            <b>{{ summary.revenue.revenue|money }}</b>
+        </div>
+    </article>
+    <article class="stat-tile stat-money tone-blue">
+        <div class="stat-copy">
+            <span class="tiny">Net cash</span>
+            <b>{{ summary.cash.net|money }}</b>
+        </div>
+        <span class="stat-mark" aria-hidden="true">Σ</span>
+    </article>
+    <article class="stat-tile stat-alert">
+        <span class="stat-flag">Collect</span>
+        <div class="stat-copy">
+            <span class="tiny">Receivables</span>
+            <b>{{ summary.receivables.total|money }}</b>
+        </div>
+    </article>
+    <article class="stat-tile stat-desk tone-navy">
+        <span class="stat-chip">Pay</span>
+        <div class="stat-copy">
+            <span class="tiny">Payables</span>
+            <b>{{ summary.payables.total|money }}</b>
+        </div>
+    </article>
+</div>
+{% endif %}
+
+<section class="report-mag panel" style="padding:0">
+    <header class="report-mag-head">
+        <div>
+            <h2>Choose a report</h2>
+        </div>
+    </header>
+
+    <a class="report-issue" href="{% url 'reports:revenue' %}{{ query }}">
+        <span class="report-num">01</span>
+        <div class="report-body">
+            <h3>Revenue</h3>
+        </div>
+        <span class="report-tag tone-teal">Sales</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'reports:expenses' %}{{ query }}">
+        <span class="report-num">02</span>
+        <div class="report-body">
+            <h3>Expenses</h3>
+        </div>
+        <span class="report-tag tone-amber">Costs</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'reports:payments' %}{{ query }}">
+        <span class="report-num">03</span>
+        <div class="report-body">
+            <h3>Payments (customer)</h3>
+        </div>
+        <span class="report-tag tone-blue">Cash</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'reports:refunds' %}{{ query }}">
+        <span class="report-num">04</span>
+        <div class="report-body">
+            <h3>Refunds</h3>
+        </div>
+        <span class="report-tag tone-rose">Cash</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'finance:receivables' %}{{ query }}">
+        <span class="report-num">05</span>
+        <div class="report-body">
+            <h3>Receivables (AR)</h3>
+        </div>
+        <span class="report-tag tone-blue">Balances</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'finance:payables' %}{{ query }}">
+        <span class="report-num">06</span>
+        <div class="report-body">
+            <h3>Payables (AP)</h3>
+        </div>
+        <span class="report-tag tone-amber">Balances</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'reports:profitability' %}{{ query }}">
+        <span class="report-num">07</span>
+        <div class="report-body">
+            <h3>Tour profitability</h3>
+        </div>
+        <span class="report-tag tone-purple">Margin</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue" href="{% url 'reports:profit_loss' %}{{ query }}">
+        <span class="report-num">08</span>
+        <div class="report-body">
+            <h3>Profit &amp; Loss</h3>
+        </div>
+        <span class="report-tag tone-purple">P&amp;L</span>
+        <span class="report-go">Open →</span>
+    </a>
+    <a class="report-issue is-last" href="{% url 'reports:transactions' %}{{ query }}">
+        <span class="report-num">09</span>
+        <div class="report-body">
+            <h3>Transactions</h3>
+        </div>
+        <span class="report-tag tone-teal">Ledger</span>
+        <span class="report-go">Open →</span>
+    </a>
+</section>
+{% endblock %}

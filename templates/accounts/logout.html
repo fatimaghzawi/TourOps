@@ -1,0 +1,23 @@
+{% extends "base_auth.html" %}
+{% block title %}Sign out{% endblock %}
+{% block heading %}Sign out{% endblock %}
+{% block subheading %}
+<p class="mt-1 text-sm text-slate-500">End this session on this device.</p>
+{% endblock %}
+{% block content %}
+<form method="post" class="space-y-3">
+    {% csrf_token %}
+    <button
+        type="submit"
+        class="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-teal px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:from-deep hover:to-teal focus:outline-none focus:ring-4 focus:ring-brand/25"
+    >
+        Sign out
+    </button>
+    <a
+        href="{% url 'dashboard:home' %}"
+        class="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-night transition hover:border-brand/40 hover:bg-slate-50"
+    >
+        Stay signed in
+    </a>
+</form>
+{% endblock %}

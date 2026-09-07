@@ -1,0 +1,41 @@
+{% extends "base_auth.html" %}
+{% block title %}Sign in{% endblock %}
+{% block heading %}Welcome back{% endblock %}
+{% block content %}
+<form method="post" class="space-y-4" novalidate>
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <label class="block space-y-1.5">
+        <span class="text-sm font-semibold text-night">Email</span>
+        {{ form.email }}
+        {% if form.email.errors %}
+            <span class="block text-sm text-red-600">{{ form.email.errors|striptags }}</span>
+        {% endif %}
+    </label>
+
+    <label class="block space-y-1.5">
+        <span class="flex items-center justify-between text-sm font-semibold text-night">
+            <span>Password</span>
+            <a href="{% url 'accounts:password_reset' %}" class="font-medium text-brand hover:text-deep">Forgot password?</a>
+        </span>
+        {{ form.password }}
+        {% if form.password.errors %}
+            <span class="block text-sm text-red-600">{{ form.password.errors|striptags }}</span>
+        {% endif %}
+    </label>
+
+    <button
+        type="submit"
+        class="mt-2 flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-teal px-4 py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:from-deep hover:to-teal focus:outline-none focus:ring-4 focus:ring-brand/25"
+    >
+        Sign in
+    </button>
+</form>
+{% endblock %}

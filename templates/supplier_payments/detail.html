@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="tiny">{{ record.number }}</p>
+        <h1>{{ record.amount|money }}</h1>
+        <p>{{ record.supplier }} · {% if record.expense_id %}<a href="{% url 'expenses:detail' record.expense_id %}">{{ record.expense }}</a>{% else %}{{ record.expense }}{% endif %}</p>
+    </div>
+    <div class="actions">
+        {% url 'supplier_payments:void' record.id as void_url %}
+        {% include "components/ico_btn.html" with action=void_url title="Void payment" icon="delete" danger=1 confirm="The expense balance will be recalculated. This is not a supplier refund." confirm_title="Take this off the ledger?" confirm_ok="Void payment" %}
+    </div>
+</div>
+<section class="panel">
+    <dl class="kv">
+        <dt>Date</dt><dd>{{ record.date }}</dd>
+        <dt>Method</dt><dd>{{ record.method_label|default:record.method|labelize }}</dd>
+        <dt>Transaction / reference number</dt><dd class="mono">{{ record.ref|default:"—" }}</dd>
+        <dt>Currency</dt><dd>{{ record.currency }}</dd>
+        {% if record.notes %}
+        <dt>Notes</dt><dd>{{ record.notes }}</dd>
+        {% endif %}
+    </dl>
+</section>
+{% endblock %}

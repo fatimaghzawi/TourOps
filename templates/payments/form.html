@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Record payment</h1>
+    </div>
+</div>
+<form method="post" class="ops-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <section class="form-card form-card-accent">
+        <header class="form-card-h">
+            <span class="form-step">1</span>
+            <div>
+                <h2>Invoice</h2>
+            </div>
+        </header>
+        {% include "components/form_field.html" with field=form.invoice_id %}
+    </section>
+
+    <section class="form-card">
+        <header class="form-card-h">
+            <span class="form-step">2</span>
+            <div>
+                <h2>Payment</h2>
+            </div>
+        </header>
+        <div class="form-row">
+            {% include "components/form_field.html" with field=form.amount %}
+            {% include "components/form_field.html" with field=form.method caption="Method" %}
+        </div>
+        {% include "components/form_field.html" with field=form.reference_number caption="Reference" %}
+        {% include "components/form_field.html" with field=form.notes caption="Internal notes" %}
+    </section>
+
+    <div class="ops-form-foot">
+        <button class="btn btn-warm" type="submit">Save payment</button>
+        <a class="btn btn-ghost" href="{% url 'payments:list' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

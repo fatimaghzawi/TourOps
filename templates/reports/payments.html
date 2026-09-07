@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load tourops %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Customer payments</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'reports:list' %}{{ query }}">All reports</a>
+</div>
+{% include "reports/_filters.html" %}
+{% if report %}
+<div class="stat-row">
+    <article class="stat-tile stat-money tone-blue">
+        <div class="stat-copy">
+            <span class="tiny">Total collected</span>
+            <b>{{ report.total|money }}</b>
+        </div>
+        <span class="stat-mark" aria-hidden="true">$</span>
+    </article>
+    <article class="stat-tile stat-count tone-teal">
+        <div class="stat-ring"><b>{{ report.count }}</b></div>
+        <div class="stat-copy">
+            <span class="tiny">Payments</span>
+        </div>
+    </article>
+    <article class="stat-tile stat-range tone-purple">
+        <span class="stat-cal" aria-hidden="true"><em>{% if filters.month %}{{ filters.month|slice:"5:7" }}{% else %}∞{% endif %}</em></span>
+        <div class="stat-copy">
+            <span class="tiny">Range</span>
+            <b>{% if filters.month %}{{ filters.month }}{% else %}All time{% endif %}</b>
+        </div>
+    </article>
+    <article class="stat-tile stat-desk tone-navy">
+        <span class="stat-chip">Live data</span>
+        <div class="stat-copy">
+            <span class="tiny">Source</span>
+            <b>Customer payments</b>
+        </div>
+    </article>
+</div>
+<div class="panel" style="padding:0">
+    <table class="data">
+        <thead><tr><th>Payment</th><th>Customer</th><th>Method</th><th>Date</th><th>Ref</th><th>Amount</th></tr></thead>
+        <tbody>
+        {% for row in report.payments %}
+            <tr>
+                <td class="mono">{{ row.number }}</td>
+                <td>{{ row.customer }}</td>
+                <td>{{ row.method|labelize }}</td>
+                <td>{{ row.date }}</td>
+                <td class="mono">{{ row.ref }}</td>
+                <td><strong class="tx-in">{{ row.amount|money }}</strong></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted" style="padding:1rem">No completed payments in this range.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
