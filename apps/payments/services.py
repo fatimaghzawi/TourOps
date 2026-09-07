@@ -16,7 +16,7 @@ from apps.audit.constants import AuditAction
 from apps.audit.services import safe_audit
 from apps.invoices.services import InvoiceService
 from apps.notifications.constants import NotificationType
-from apps.notifications.services import FINANCE_NOTIFY_ROLES, safe_notify_roles
+from apps.notifications.services import STAFF_NOTIFY_ROLES, safe_notify_roles
 from apps.payments.repositories import PaymentRepository
 from apps.receipts.repositories import ReceiptRepository
 from core.constants import BookingStatus, Collections, InvoiceStatus, PaymentMethod, PaymentRecordStatus, PaymentStatus
@@ -153,13 +153,12 @@ class PaymentService:
             after={"payment_number": presented.get("payment_number"), "amount": presented.get("amount")},
         )
         safe_notify_roles(
-            FINANCE_NOTIFY_ROLES,
+            STAFF_NOTIFY_ROLES,
             type=NotificationType.PAYMENT.value,
             title=f"Payment {presented.get('payment_number')}",
             message=f"A customer payment of {presented.get('amount')} was recorded.",
             related_entity_type="payments",
             related_entity_id=doc["_id"],
-            exclude_user_id=recorded_by,
         )
         return presented
 

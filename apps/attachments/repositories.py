@@ -7,6 +7,8 @@ from core.database import get_collection
 from core.soft_delete import SoftDeleteRepositoryMixin, live_query
 from core.utils import parse_object_id
 
+LIST_PROJECTION = {"payload": 0}
+
 
 class AttachmentRepository(SoftDeleteRepositoryMixin):
     def __init__(self, collection: Collection | None = None):
@@ -20,7 +22,8 @@ class AttachmentRepository(SoftDeleteRepositoryMixin):
                         "entity_type": entity_type,
                         "entity_id": parse_object_id(entity_id, field="entity_id"),
                     }
-                )
+                ),
+                LIST_PROJECTION,
             )
             .sort("created_at", -1)
             .limit(limit)
@@ -44,4 +47,6 @@ class AttachmentRepository(SoftDeleteRepositoryMixin):
             query["entity_id"] = parse_object_id(entity_id, field="entity_id")
         if category:
             query["category"] = category
-        return list(self.collection.find(live_query(query)).sort("created_at", -1).limit(limit))
+        return list(
+            self.collection.find(live_query(query), LIST_PROJECTION).sort("created_at", -1).limit(limit)
+        )

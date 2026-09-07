@@ -226,7 +226,6 @@ class SupplierReservationService:
             message="A supplier arrangement was recorded for a departure.",
             related_entity_type="supplier_reservations",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 
@@ -300,7 +299,6 @@ class SupplierReservationService:
             message="The supplier confirmed. Update the client itinerary if needed.",
             related_entity_type="supplier_reservations",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 
@@ -312,7 +310,6 @@ class SupplierReservationService:
             message="A supplier reservation was cancelled.",
             related_entity_type="supplier_reservations",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 

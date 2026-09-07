@@ -664,9 +664,9 @@ class Command(BaseCommand):
             tours["august"],
             customers["ramzi"],
             [
-                {"first_name": "Ramzi", "last_name": "Nassar", "passport_number": "LR1420095", "room_type": "DOUBLE", "room_number": "812"},
-                {"first_name": "Maya", "last_name": "Nassar", "passport_number": "LR1420096", "room_type": "DOUBLE", "room_number": "812"},
-                {"first_name": "Tony", "last_name": "Nassar", "passport_number": "LR1420097", "room_type": "SINGLE", "room_number": "814"},
+                {"first_name": "Ramzi", "last_name": "Nassar", "passport_number": "LR1420095"},
+                {"first_name": "Maya", "last_name": "Nassar", "passport_number": "LR1420096"},
+                {"first_name": "Tony", "last_name": "Nassar", "passport_number": "LR1420097"},
             ],
             confirm=True,
             notes="Anniversary trip. Paid in cash at the Hamra desk before departure.",
@@ -676,8 +676,8 @@ class Command(BaseCommand):
             tours["august"],
             customers["hiba"],
             [
-                {"first_name": "Hiba", "last_name": "Rahme", "passport_number": "LR2210988", "room_type": "TWIN", "room_number": "820"},
-                {"first_name": "Rana", "last_name": "Rahme", "passport_number": "LR2210989", "room_type": "TWIN", "room_number": "820"},
+                {"first_name": "Hiba", "last_name": "Rahme", "passport_number": "LR2210988"},
+                {"first_name": "Rana", "last_name": "Rahme", "passport_number": "LR2210989"},
             ],
             confirm=True,
         )
@@ -689,8 +689,8 @@ class Command(BaseCommand):
             tours["in_progress"],
             customers["fadi"],
             [
-                {"first_name": "Fadi", "last_name": "Sleiman", "passport_number": "LR1993340", "room_type": "DOUBLE", "room_number": "504"},
-                {"first_name": "Rana", "last_name": "Sleiman", "passport_number": "LR1993341", "room_type": "DOUBLE", "room_number": "504"},
+                {"first_name": "Fadi", "last_name": "Sleiman", "passport_number": "LR1993340"},
+                {"first_name": "Rana", "last_name": "Sleiman", "passport_number": "LR1993341"},
             ],
             confirm=True,
         )
@@ -699,9 +699,9 @@ class Command(BaseCommand):
             tours["in_progress"],
             customers["samer"],
             [
-                {"first_name": "Samer", "last_name": "Abou Jaoude", "passport_number": "LR1882301", "room_type": "TWIN", "room_number": "506"},
-                {"first_name": "Marc", "last_name": "Abou Jaoude", "passport_number": "LR1882302", "room_type": "TWIN", "room_number": "506"},
-                {"first_name": "Lara", "last_name": "Abou Jaoude", "passport_number": "LR1882303", "room_type": "SINGLE", "room_number": "507"},
+                {"first_name": "Samer", "last_name": "Abou Jaoude", "passport_number": "LR1882301"},
+                {"first_name": "Marc", "last_name": "Abou Jaoude", "passport_number": "LR1882302"},
+                {"first_name": "Lara", "last_name": "Abou Jaoude", "passport_number": "LR1882303"},
             ],
             confirm=True,
         )
@@ -713,9 +713,9 @@ class Command(BaseCommand):
             tours["september"],
             customers["ghossoub"],
             [
-                {"first_name": "Joumana", "last_name": "Ghossoub", "passport_number": "LR1542290", "room_type": "TWIN", "room_number": "1102"},
-                {"first_name": "Karim", "last_name": "Ghossoub", "passport_number": "LR1542291", "room_type": "TWIN", "room_number": "1102"},
-                {"first_name": "Nour", "last_name": "Ghossoub", "passport_number": "LR1542292", "room_type": "SINGLE", "room_number": "1104"},
+                {"first_name": "Joumana", "last_name": "Ghossoub", "passport_number": "LR1542290"},
+                {"first_name": "Karim", "last_name": "Ghossoub", "passport_number": "LR1542291"},
+                {"first_name": "Nour", "last_name": "Ghossoub", "passport_number": "LR1542292"},
             ],
             confirm=True,
             notes="Connecting twins if the hotel can. Teenagers, no extra bed.",
@@ -725,8 +725,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["fadi"],
             [
-                {"first_name": "Elie", "last_name": "Sleiman", "passport_number": "LR1993402", "room_type": "DOUBLE"},
-                {"first_name": "Paula", "last_name": "Sleiman", "passport_number": "LR1993403", "room_type": "DOUBLE"},
+                {"first_name": "Elie", "last_name": "Sleiman", "passport_number": "LR1993402"},
+                {"first_name": "Paula", "last_name": "Sleiman", "passport_number": "LR1993403"},
             ],
             confirm=True,
             notes="Fadi's brother — second household on the same departure.",
@@ -736,8 +736,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["hiba"],
             [
-                {"first_name": "Hiba", "last_name": "Rahme", "passport_number": "LR2210988", "room_type": "TWIN"},
-                {"first_name": "Yara", "last_name": "Rahme", "passport_number": "LR2210990", "room_type": "TWIN"},
+                {"first_name": "Hiba", "last_name": "Rahme", "passport_number": "LR2210988"},
+                {"first_name": "Yara", "last_name": "Rahme", "passport_number": "LR2210990"},
             ],
             confirm=True,
         )
@@ -746,8 +746,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["nadine"],
             [
-                {"first_name": "Nadine", "last_name": "Khoury", "passport_number": "LR2054412", "room_type": "TWIN"},
-                {"first_name": "Tarek", "last_name": "Khoury", "passport_number": "LR2054413", "room_type": "TWIN"},
+                {"first_name": "Nadine", "last_name": "Khoury", "passport_number": "LR2054412"},
+                {"first_name": "Tarek", "last_name": "Khoury", "passport_number": "LR2054413"},
             ],
             confirm=True,
         )
@@ -756,8 +756,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["elie"],
             [
-                {"first_name": "Elie", "last_name": "Tannous", "passport_number": "LR2087711", "room_type": "DOUBLE"},
-                {"first_name": "Rita", "last_name": "Tannous", "passport_number": "LR2087712", "room_type": "DOUBLE"},
+                {"first_name": "Elie", "last_name": "Tannous", "passport_number": "LR2087711"},
+                {"first_name": "Rita", "last_name": "Tannous", "passport_number": "LR2087712"},
             ],
             confirm=True,
             notes="Left a cash deposit. Balance promised before Friday.",
@@ -767,8 +767,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["layla"],
             [
-                {"first_name": "Layla", "last_name": "Mansour", "passport_number": "LR1766509", "room_type": "TWIN"},
-                {"first_name": "Hala", "last_name": "Mansour", "passport_number": "LR1766510", "room_type": "TWIN"},
+                {"first_name": "Layla", "last_name": "Mansour", "passport_number": "LR1766509"},
+                {"first_name": "Hala", "last_name": "Mansour", "passport_number": "LR1766510"},
             ],
             confirm=True,
             notes="Invoice issued. Waiting on the Bank of Beirut transfer.",
@@ -777,9 +777,9 @@ class Command(BaseCommand):
             tours["september"],
             customers["ramzi"],
             [
-                {"first_name": "Sami", "last_name": "Nassar", "passport_number": "LR1420101", "room_type": "DOUBLE"},
-                {"first_name": "Lina", "last_name": "Nassar", "passport_number": "LR1420102", "room_type": "DOUBLE"},
-                {"first_name": "Joe", "last_name": "Nassar", "passport_number": "LR1420103", "room_type": "SINGLE"},
+                {"first_name": "Sami", "last_name": "Nassar", "passport_number": "LR1420101"},
+                {"first_name": "Lina", "last_name": "Nassar", "passport_number": "LR1420102"},
+                {"first_name": "Joe", "last_name": "Nassar", "passport_number": "LR1420103"},
             ],
             confirm=True,
             notes="Ramzi sending his brother this time.",
@@ -789,8 +789,8 @@ class Command(BaseCommand):
             tours["september"],
             customers["yasmin"],
             [
-                {"first_name": "Yasmin", "last_name": "Farhat", "passport_number": "LR2304418", "room_type": "DOUBLE"},
-                {"first_name": "Bassam", "last_name": "Farhat", "room_type": "DOUBLE"},
+                {"first_name": "Yasmin", "last_name": "Farhat", "passport_number": "LR2304418"},
+                {"first_name": "Bassam", "last_name": "Farhat"},
             ],
             confirm=False,
             notes="Pending passport scan for Bassam. Two seats still free on this departure.",
@@ -801,8 +801,8 @@ class Command(BaseCommand):
             tours["petra_sep"],
             customers["omar"],
             [
-                {"first_name": "Omar", "last_name": "Al-Masri", "passport_number": "JO4459012", "room_type": "DOUBLE"},
-                {"first_name": "Laila", "last_name": "Al-Masri", "passport_number": "JO4459013", "room_type": "DOUBLE"},
+                {"first_name": "Omar", "last_name": "Al-Masri", "passport_number": "JO4459012"},
+                {"first_name": "Laila", "last_name": "Al-Masri", "passport_number": "JO4459013"},
             ],
             confirm=True,
         )
@@ -810,10 +810,10 @@ class Command(BaseCommand):
             tours["petra_sep"],
             customers["samer"],
             [
-                {"first_name": "Samer", "last_name": "Abou Jaoude", "passport_number": "LR1882301", "room_type": "TWIN"},
-                {"first_name": "Marc", "last_name": "Abou Jaoude", "passport_number": "LR1882302", "room_type": "TWIN"},
-                {"first_name": "Lara", "last_name": "Abou Jaoude", "passport_number": "LR1882303", "room_type": "SINGLE"},
-                {"first_name": "Nada", "last_name": "Abou Jaoude", "passport_number": "LR1882304", "room_type": "SINGLE"},
+                {"first_name": "Samer", "last_name": "Abou Jaoude", "passport_number": "LR1882301"},
+                {"first_name": "Marc", "last_name": "Abou Jaoude", "passport_number": "LR1882302"},
+                {"first_name": "Lara", "last_name": "Abou Jaoude", "passport_number": "LR1882303"},
+                {"first_name": "Nada", "last_name": "Abou Jaoude", "passport_number": "LR1882304"},
             ],
             confirm=True,
             notes="Family of four. Deposit taken; balance due 7 days before.",
@@ -825,8 +825,8 @@ class Command(BaseCommand):
             tours["petra_nov"],
             customers["nadine"],
             [
-                {"first_name": "Nadine", "last_name": "Khoury", "passport_number": "LR2054412", "room_type": "TWIN"},
-                {"first_name": "Tarek", "last_name": "Khoury", "passport_number": "LR2054413", "room_type": "TWIN"},
+                {"first_name": "Nadine", "last_name": "Khoury", "passport_number": "LR2054412"},
+                {"first_name": "Tarek", "last_name": "Khoury", "passport_number": "LR2054413"},
             ],
             confirm=True,
             notes="Dates no longer work. Agency cancelled and returned the payment.",
@@ -847,8 +847,8 @@ class Command(BaseCommand):
             tours["petra_nov"],
             customers["tania"],
             [
-                {"first_name": "Tania", "last_name": "Harb", "passport_number": "LR1678803", "room_type": "DOUBLE"},
-                {"first_name": "Walid", "last_name": "Harb", "passport_number": "LR1678804", "room_type": "DOUBLE"},
+                {"first_name": "Tania", "last_name": "Harb", "passport_number": "LR1678803"},
+                {"first_name": "Walid", "last_name": "Harb", "passport_number": "LR1678804"},
             ],
             confirm=True,
             notes="Asked to drop out. Refund request sitting with the owner.",
@@ -1070,7 +1070,7 @@ class Command(BaseCommand):
             supplier=catalog["phoenicia"],
             category=ExpenseCategory.HOTEL.value,
             amount="10800.00",
-            description="Phoenicia estimated room block, 12–18 Sep",
+            description="Phoenicia estimated hotel block, 12–18 Sep",
             date="2026-09-01",
             due="2026-09-08",
         )

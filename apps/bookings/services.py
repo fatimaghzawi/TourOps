@@ -8,7 +8,7 @@ from apps.bookings.constants import STATUS_LABELS
 from apps.bookings.repositories import BookingRepository
 from apps.notifications.constants import NotificationType
 from apps.notifications.services import notify_for_type
-from apps.packages.validators import format_dates, parse_optional_object_id, parse_when
+from apps.packages.validators import format_dates, parse_when
 from apps.tours.services import TourService
 from core.constants import BookingStatus, Collections, DEFAULT_CURRENCY, DiscountType, PaymentStatus, TourStatus
 from core.exceptions import BusinessRuleViolation, DatabaseUnavailableError, NotFoundError, TourOpsError, ValidationError
@@ -32,9 +32,6 @@ def present_traveler(person: dict, *, index: int = 0, booking: dict | None = Non
         "nationality": person.get("nationality") or "",
         "date_of_birth": dob,
         "dob": dob.strftime("%d %b %Y") if hasattr(dob, "strftime") else (str(dob) if dob else ""),
-        "room_type": person.get("room_type") or "",
-        "room_number": person.get("room_number") or "",
-        "hotel_reservation_id": serialize_id(person.get("hotel_reservation_id")),
         "type": person.get("type") or "",
     }
 
@@ -109,7 +106,6 @@ def clean_travelers(raw) -> list[dict]:
             raise ValidationError(f"Traveler {index} needs a first and last name.")
         dob = item.get("date_of_birth")
         parsed_dob = parse_when(dob, field="date_of_birth", required=False) if dob not in (None, "") else None
-        hotel_id = parse_optional_object_id(item.get("hotel_reservation_id"), field="hotel_reservation_id")
         people.append(
             {
                 "first_name": first,
@@ -117,9 +113,6 @@ def clean_travelers(raw) -> list[dict]:
                 "passport_number": (item.get("passport_number") or item.get("passport") or "").strip() or None,
                 "nationality": (item.get("nationality") or "").strip() or None,
                 "date_of_birth": parsed_dob,
-                "room_type": (item.get("room_type") or "").strip().upper() or None,
-                "room_number": (item.get("room_number") or "").strip() or None,
-                "hotel_reservation_id": hotel_id,
             }
         )
     if not people:
@@ -200,7 +193,6 @@ class BookingService:
             message="A new booking is waiting to be confirmed.",
             related_entity_type="bookings",
             related_entity_id=document["_id"],
-            exclude_user_id=actor_id,
         )
         return self.get(document["_id"])
 
@@ -250,7 +242,6 @@ class BookingService:
             message="Seats are confirmed. Time to brief the client.",
             related_entity_type="bookings",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         try:
             self._ensure_invoice(saved["_id"], actor_id=actor_id)
@@ -308,7 +299,6 @@ class BookingService:
             message="This booking was cancelled. Check seats and any open invoice.",
             related_entity_type="bookings",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 
@@ -363,35 +353,6 @@ class BookingService:
                 "This booking still has unrefunded payments. Complete refunds before cancelling."
             )
         InvoiceService().cancel(invoice["_id"], actor_id=actor_id)
-
-    def assign_rooms(self, booking_id, assignments: list[dict], *, actor_id, tour_id=None) -> dict:
-        document = self.get(booking_id)
-        if tour_id and str(document.get("tour_id")) != str(tour_id):
-            raise ValidationError("Booking does not belong to this tour.")
-        travelers = list(document.get("travelers") or [])
-        for item in assignments:
-            index = item.get("traveler_index", item.get("index"))
-            try:
-                index = int(index)
-            except (TypeError, ValueError) as extra:
-                raise ValidationError("Invalid traveler index.") from extra
-            if index < 0 or index >= len(travelers):
-                raise ValidationError("Traveler index is out of range.")
-            person = dict(travelers[index])
-            if "room_number" in item:
-                person["room_number"] = (item.get("room_number") or "").strip() or None
-            if "room_type" in item:
-                person["room_type"] = (item.get("room_type") or "").strip().upper() or None
-            if "hotel_reservation_id" in item:
-                person["hotel_reservation_id"] = parse_optional_object_id(
-                    item.get("hotel_reservation_id"), field="hotel_reservation_id"
-                )
-            travelers[index] = person
-        try:
-            self.repository.update(document["_id"], {"travelers": travelers, "updated_at": utcnow()})
-        except PyMongoError as extra:
-            raise DatabaseUnavailableError("Could not save room assignments.") from extra
-        return self.get(document["_id"])
 
     def _present(self, document: dict) -> dict:
         customer = None

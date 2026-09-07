@@ -38,7 +38,7 @@ STORY = {
     "balance_ref": "ARB-BAL-1509",
     "hotel_pay_ref": "GARANTI-WIRE-1509",
     "maya_notes": "Walk-in at the desk. Two seats on Istanbul Escape, 15–20 Sep.",
-    "booking_notes": "Maya Hassan + Omar Hassan. Twin room preference.",
+    "booking_notes": "Maya Hassan + Omar Hassan.",
     "refund_reason": "Family emergency — Omar cannot travel on 15 September.",
     "pay_notes": "Deposit collected at the desk for Maya Hassan, Istanbul Escape.",
     "hotel_pay_notes": "30% on confirmation, per Bosphorus Hotel terms.",

@@ -73,14 +73,6 @@ class SupplierReservationStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
-class RoomType(StrEnum):
-    SINGLE = "SINGLE"
-    TWIN = "TWIN"
-    DOUBLE = "DOUBLE"
-    TRIPLE = "TRIPLE"
-    QUAD = "QUAD"
-
-
 class TourStatus(StrEnum):
     DRAFT = "DRAFT"
     AVAILABLE = "AVAILABLE"

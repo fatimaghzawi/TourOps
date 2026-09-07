@@ -126,17 +126,16 @@
 {% endif %}
 <section class="panel" style="padding:0;margin-top:1rem">
     <table class="data">
-        <thead><tr><th>Name</th><th>Passport</th><th>Nationality</th><th>Room</th></tr></thead>
+        <thead><tr><th>Name</th><th>Passport</th><th>Nationality</th></tr></thead>
         <tbody>
         {% for t in record.travelers %}
             <tr>
                 <td>{{ t.name }}</td>
                 <td class="mono">{{ t.passport|default:"—" }}</td>
                 <td>{{ t.nationality|default:"—" }}</td>
-                <td>{% if t.room_number %}{{ t.room_number }}{% if t.room_type %} · {{ t.room_type }}{% endif %}{% else %}Unassigned{% endif %}</td>
             </tr>
         {% empty %}
-            <tr><td colspan="4"><p class="muted" style="margin:.8rem">No travelers on this booking.</p></td></tr>
+            <tr><td colspan="3"><p class="muted" style="margin:.8rem">No travelers on this booking.</p></td></tr>
         {% endfor %}
         </tbody>
     </table>

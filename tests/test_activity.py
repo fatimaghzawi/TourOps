@@ -203,6 +203,27 @@ def test_attachment_rejects_empty_file(settings, tmp_path):
     raise AssertionError("expected ValidationError")
 
 
+def test_attachment_preview_survives_missing_disk_file(owner_session, fake_mongo, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    entity_id = ObjectId()
+    upload = SimpleUploadedFile("receipt.png", b"\x89PNG\r\n\x1a\nhello", content_type="image/png")
+    created = AttachmentService().create(
+        actor_id=OWNER_ID,
+        entity_type=AttachmentEntityType.EXPENSES.value,
+        entity_id=entity_id,
+        category=AttachmentCategory.RECEIPT.value,
+        upload=upload,
+    )
+    stored = AttachmentService().get(str(created["_id"]))
+    disk = tmp_path / stored["storage_key"]
+    if disk.exists():
+        disk.unlink()
+    preview = owner_session.get(reverse("attachments:preview", args=[str(created["_id"])]))
+    assert preview.status_code == 200
+    body = b"".join(preview.streaming_content)
+    assert body.startswith(b"\x89PNG")
+
+
 def test_expense_create_writes_audit_and_notifies(db, fake_mongo):
     _user(user_id=OWNER_ID, role=UserRole.OWNER_ADMIN.value, email="owner@tourops.local")
     _user(user_id=ACCOUNTANT_ID, role=UserRole.ACCOUNTANT.value, email="accountant@tourops.local")
@@ -222,11 +243,13 @@ def test_notify_for_type_routes_admin_accountant_and_agent(db, fake_mongo):
     _user(user_id=ACCOUNTANT_ID, role=UserRole.ACCOUNTANT.value, email="accountant@tourops.local")
     _user(user_id=AGENT_ID, role=UserRole.TRAVEL_AGENT.value, email="agent@tourops.local")
     assert roles_for_type(NotificationType.PAYMENT.value) == (
+        UserRole.TRAVEL_AGENT.value,
         UserRole.ACCOUNTANT.value,
         UserRole.OWNER_ADMIN.value,
     )
     assert roles_for_type(NotificationType.BOOKING.value) == (
         UserRole.TRAVEL_AGENT.value,
+        UserRole.ACCOUNTANT.value,
         UserRole.OWNER_ADMIN.value,
     )
     assert roles_for_type(NotificationType.ATTACHMENT.value, entity_type="tours") == (
@@ -247,7 +270,7 @@ def test_notify_for_type_routes_admin_accountant_and_agent(db, fake_mongo):
         exclude_user_id=OWNER_ID,
     )
     assert NotificationService().unread_count(AGENT_ID) == 1
-    assert NotificationService().unread_count(ACCOUNTANT_ID) == 0
+    assert NotificationService().unread_count(ACCOUNTANT_ID) == 1
     notify_for_type(
         NotificationType.PAYMENT.value,
         title="Payment PAY-1001",
@@ -256,5 +279,8 @@ def test_notify_for_type_routes_admin_accountant_and_agent(db, fake_mongo):
         related_entity_id=ObjectId(),
         exclude_user_id=OWNER_ID,
     )
-    assert NotificationService().unread_count(ACCOUNTANT_ID) == 1
-    assert NotificationService().list_for_user(AGENT_ID)[0]["type"] == NotificationType.BOOKING.value
+    assert NotificationService().unread_count(ACCOUNTANT_ID) == 2
+    assert NotificationService().unread_count(AGENT_ID) == 2
+    types = {row["type"] for row in NotificationService().list_for_user(AGENT_ID)}
+    assert NotificationType.BOOKING.value in types
+    assert NotificationType.PAYMENT.value in types

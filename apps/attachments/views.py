@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
@@ -7,7 +8,7 @@ from apps.attachments.constants import CATEGORY_CHOICES, ENTITY_CHOICES
 from apps.attachments.forms import AttachmentUploadForm
 from apps.attachments.services import AttachmentService
 from core.access import ALL_ROLES, attachment_entities_for
-from core.exceptions import DatabaseUnavailableError, TourOpsError
+from core.exceptions import DatabaseUnavailableError, PermissionDeniedError, TourOpsError
 from core.permissions import get_session_user, login_required, role_required
 from core.utils import parse_object_id
 
@@ -131,10 +132,11 @@ def attachment_preview(request, id):
     try:
         return AttachmentService().file_response(id, inline=True, actor_role=request.user.role)
     except DatabaseUnavailableError:
-        return _unavailable(request)
-    except TourOpsError as extra:
-        messages.error(request, extra.message)
-        return redirect(_safe_next(request))
+        return HttpResponse(status=503)
+    except PermissionDeniedError:
+        return HttpResponseForbidden()
+    except TourOpsError:
+        return HttpResponse(status=404)
 
 
 @login_required

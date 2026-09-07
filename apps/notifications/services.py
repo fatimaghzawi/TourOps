@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from django.urls import reverse
+
 from apps.accounts.models import User
 from apps.notifications.constants import TYPE_BADGE, TYPE_LABELS, NotificationType
 from apps.notifications.repositories import NotificationRepository
@@ -31,11 +33,51 @@ def _when_label(value) -> str:
     return "Earlier"
 
 
+def notification_href(item: dict) -> str:
+    kind = item.get("type") or item.get("kind")
+    entity_type = item.get("related_entity_type")
+    entity_id = item.get("related_entity_id")
+    try:
+        if entity_type == "expenses" and entity_id:
+            return reverse("expenses:detail", args=[entity_id])
+        if entity_type == "supplier_payments" and entity_id:
+            return reverse("supplier_payments:detail", args=[entity_id])
+        if entity_type == "bookings" and entity_id:
+            return reverse("bookings:detail", args=[entity_id])
+        if entity_type == "tours" and entity_id:
+            return reverse("tours:detail", args=[entity_id])
+        if entity_type == "supplier_reservations" and entity_id:
+            return reverse("supplier_reservations:detail", args=[entity_id])
+        if entity_type == "invoices":
+            return reverse("invoices:list")
+        if entity_type == "payments":
+            return reverse("payments:list")
+        if entity_type == "refunds":
+            return reverse("refunds:list")
+        if entity_type == "attachments":
+            return reverse("attachments:list")
+        if kind == "refund":
+            return reverse("refunds:list")
+        if kind == "payment":
+            return reverse("payments:list")
+        if kind == "supplier":
+            return reverse("supplier_payments:list")
+        if kind == "expense":
+            return reverse("expenses:list")
+        if kind == "booking":
+            return reverse("bookings:list")
+        if kind == "tour":
+            return reverse("tours:list")
+        return reverse("notifications:list")
+    except Exception:
+        return "/notifications/"
+
+
 def present_notification(document: dict) -> dict:
     related = document.get("related_entity") or {}
     kind = document.get("type") or NotificationType.SYSTEM.value
     created = document.get("created_at")
-    return {
+    presented = {
         "id": serialize_id(document.get("_id")),
         "user_id": serialize_id(document.get("user_id")),
         "type": kind,
@@ -53,6 +95,12 @@ def present_notification(document: dict) -> dict:
         "related_entity_type": related.get("type") if isinstance(related, dict) else getattr(related, "type", None),
         "related_entity_id": serialize_id(related.get("id") if isinstance(related, dict) else getattr(related, "id", None)),
     }
+    presented["href"] = notification_href(presented)
+    try:
+        presented["open_href"] = reverse("notifications:open", args=[presented["id"]]) if presented["id"] else presented["href"]
+    except Exception:
+        presented["open_href"] = presented["href"]
+    return presented
 
 
 class NotificationService:
@@ -161,13 +209,18 @@ FINANCE_NOTIFY_ROLES = (UserRole.ACCOUNTANT.value, UserRole.OWNER_ADMIN.value)
 OWNER_NOTIFY_ROLES = (UserRole.OWNER_ADMIN.value,)
 AGENT_NOTIFY_ROLES = (UserRole.TRAVEL_AGENT.value,)
 OPS_NOTIFY_ROLES = (UserRole.TRAVEL_AGENT.value, UserRole.OWNER_ADMIN.value)
+STAFF_NOTIFY_ROLES = (
+    UserRole.TRAVEL_AGENT.value,
+    UserRole.ACCOUNTANT.value,
+    UserRole.OWNER_ADMIN.value,
+)
 
 TYPE_NOTIFY_ROLES = {
-    NotificationType.PAYMENT.value: FINANCE_NOTIFY_ROLES,
-    NotificationType.REFUND.value: FINANCE_NOTIFY_ROLES,
+    NotificationType.PAYMENT.value: STAFF_NOTIFY_ROLES,
+    NotificationType.REFUND.value: STAFF_NOTIFY_ROLES,
     NotificationType.EXPENSE.value: FINANCE_NOTIFY_ROLES,
     NotificationType.SUPPLIER.value: FINANCE_NOTIFY_ROLES,
-    NotificationType.BOOKING.value: OPS_NOTIFY_ROLES,
+    NotificationType.BOOKING.value: STAFF_NOTIFY_ROLES,
     NotificationType.TOUR.value: OPS_NOTIFY_ROLES,
     NotificationType.SYSTEM.value: OWNER_NOTIFY_ROLES,
     NotificationType.ATTACHMENT.value: OPS_NOTIFY_ROLES,

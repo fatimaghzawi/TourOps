@@ -205,7 +205,6 @@ class SupplierPaymentService:
             message=f"A supplier payment of {to_money(saved.get('amount'))} was recorded.",
             related_entity_type="supplier_payments",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 

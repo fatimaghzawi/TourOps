@@ -73,7 +73,6 @@ HOUSEHOLDS = (
         "city": "Kadikoy",
         "passport": "U4411101",
         "partner_passport": "U4411102",
-        "room": "301",
     },
     {
         "first": "Emre",
@@ -83,7 +82,6 @@ HOUSEHOLDS = (
         "city": "Besiktas",
         "passport": "U4411103",
         "partner_passport": "U4411104",
-        "room": "302",
     },
     {
         "first": "Deniz",
@@ -93,7 +91,6 @@ HOUSEHOLDS = (
         "city": "Sisli",
         "passport": "U4411105",
         "partner_passport": "U4411106",
-        "room": "303",
     },
     {
         "first": "Burak",
@@ -103,7 +100,6 @@ HOUSEHOLDS = (
         "city": "Uskudar",
         "passport": "U4411107",
         "partner_passport": "U4411108",
-        "room": "304",
     },
     {
         "first": "Mert",
@@ -113,7 +109,6 @@ HOUSEHOLDS = (
         "city": "Bakirkoy",
         "passport": "U4411109",
         "partner_passport": "U4411110",
-        "room": "305",
     },
     {
         "first": "Kerem",
@@ -123,7 +118,6 @@ HOUSEHOLDS = (
         "city": "Bebek",
         "passport": "U4411111",
         "partner_passport": "U4411112",
-        "room": "306",
     },
     {
         "first": "Ozan",
@@ -133,7 +127,6 @@ HOUSEHOLDS = (
         "city": "Ortakoy",
         "passport": "U4411113",
         "partner_passport": "U4411114",
-        "room": "307",
     },
     {
         "first": "Baran",
@@ -143,7 +136,6 @@ HOUSEHOLDS = (
         "city": "Cihangir",
         "passport": "U4411115",
         "partner_passport": "U4411116",
-        "room": "308",
     },
     {
         "first": "Tolga",
@@ -153,7 +145,6 @@ HOUSEHOLDS = (
         "city": "Moda",
         "passport": "U4411117",
         "partner_passport": "U4411118",
-        "room": "309",
     },
     {
         "first": "Hakan",
@@ -163,7 +154,6 @@ HOUSEHOLDS = (
         "city": "Nisantasi",
         "passport": "U4411119",
         "partner_passport": "U4411120",
-        "room": "310",
     },
     {
         "first": "Yigit",
@@ -173,7 +163,6 @@ HOUSEHOLDS = (
         "city": "Etiler",
         "passport": "U4411121",
         "partner_passport": "U4411122",
-        "room": "311",
     },
 )
 
@@ -484,7 +473,7 @@ class Command(BaseCommand):
                 country="Turkey",
                 nationality="Turkish",
                 passport=household["passport"],
-                notes=f"Twin {household['room']} on Istanbul Escape. Travelling with {household['partner']} {household['last']}.",
+                notes=f"Travelling with {household['partner']} {household['last']} on Istanbul Escape.",
             )
             booking = BookingService().create(
                 actor_id=self.agent_id,
@@ -496,19 +485,15 @@ class Command(BaseCommand):
                         "last_name": household["last"],
                         "passport_number": household["passport"],
                         "nationality": "Turkish",
-                        "room_type": "TWIN",
-                        "room_number": household["room"],
                     },
                     {
                         "first_name": household["partner"],
                         "last_name": household["last"],
                         "passport_number": household["partner_passport"],
                         "nationality": "Turkish",
-                        "room_type": "TWIN",
-                        "room_number": household["room"],
                     },
                 ],
-                notes=f"Paid household. Twin {household['room']}.",
+                notes=f"Paid household. {household['first']} and {household['partner']} {household['last']}.",
             )
             booking = BookingService().confirm(booking["_id"], actor_id=self.agent_id)
             _pay(

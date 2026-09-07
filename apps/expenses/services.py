@@ -267,7 +267,6 @@ class ExpenseService:
             message=f"A new {saved.get('category', 'expense').replace('_', ' ').lower()} expense was recorded.",
             related_entity_type="expenses",
             related_entity_id=saved["_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 

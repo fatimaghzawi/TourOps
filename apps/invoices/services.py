@@ -21,7 +21,7 @@ from apps.audit.services import safe_audit
 from apps.bookings.repositories import BookingRepository
 from apps.invoices.repositories import InvoiceRepository
 from apps.notifications.constants import NotificationType
-from apps.notifications.services import FINANCE_NOTIFY_ROLES, safe_notify_roles
+from apps.notifications.services import STAFF_NOTIFY_ROLES, safe_notify_roles
 from core.constants import BookingStatus, Collections, DEFAULT_CURRENCY, InvoiceStatus
 from core.database import get_collection
 from core.exceptions import BusinessRuleViolation, NotFoundError, ValidationError
@@ -235,13 +235,12 @@ class InvoiceService:
             after={"invoice_number": presented.get("invoice_number"), "total_amount": presented.get("total_amount")},
         )
         safe_notify_roles(
-            FINANCE_NOTIFY_ROLES,
+            STAFF_NOTIFY_ROLES,
             type=NotificationType.PAYMENT.value,
             title=f"Invoice {presented.get('invoice_number')}",
             message=f"Invoice {presented.get('invoice_number')} was issued for {presented.get('total_amount')}.",
             related_entity_type="invoices",
             related_entity_id=doc["_id"],
-            exclude_user_id=created_by,
         )
         return presented
 

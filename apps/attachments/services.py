@@ -3,8 +3,10 @@ from __future__ import annotations
 import mimetypes
 import re
 import uuid
+from io import BytesIO
 from pathlib import Path
 
+from bson.binary import Binary
 from django.conf import settings
 from django.http import FileResponse
 from pymongo.errors import PyMongoError
@@ -40,6 +42,9 @@ def _iso(value) -> str | None:
 def _safe_name(name: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", (name or "file").strip()) or "file"
     return cleaned[:120]
+
+
+SEED_PHOTOS = Path(__file__).resolve().parents[1] / "presentation" / "seed_photos"
 
 
 def present_attachment(document: dict) -> dict:
@@ -103,19 +108,58 @@ class AttachmentService:
         return present_attachment(self.get(doc_id, actor_role=actor_role))
 
     def absolute_path(self, storage_key: str) -> Path:
-        root = Path(settings.MEDIA_ROOT)
-        path = (root / storage_key).resolve()
-        if not str(path).startswith(str(root.resolve())):
-            raise ValidationError("Invalid storage key.")
+        root = Path(settings.MEDIA_ROOT).resolve()
+        path = (root / (storage_key or "")).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError as extra:
+            raise ValidationError("Invalid storage key.") from extra
         return path
+
+    def _seed_photo(self, file_name: str) -> Path | None:
+        name = Path(file_name or "").name
+        if not name:
+            return None
+        path = (SEED_PHOTOS / name).resolve()
+        try:
+            path.relative_to(SEED_PHOTOS.resolve())
+        except ValueError:
+            return None
+        return path if path.is_file() else None
+
+    def _load_bytes(self, document: dict) -> bytes | None:
+        key = document.get("storage_key") or ""
+        if key:
+            path = self.absolute_path(key)
+            if path.is_file():
+                return path.read_bytes()
+        payload = document.get("payload")
+        if payload:
+            return bytes(payload)
+        seed = self._seed_photo(document.get("file_name") or "")
+        if seed:
+            return seed.read_bytes()
+        return None
+
+    def _remember_payload(self, document: dict, data: bytes) -> None:
+        if document.get("payload") or not data or not document.get("_id"):
+            return
+        try:
+            self.repository.collection.update_one(
+                {"_id": document["_id"]},
+                {"$set": {"payload": Binary(data)}},
+            )
+        except Exception:
+            return
 
     def file_response(self, doc_id: str, *, inline: bool = False, actor_role=None) -> FileResponse:
         document = self.get(doc_id, actor_role=actor_role)
-        path = self.absolute_path(document.get("storage_key") or "")
-        if not path.exists() or not path.is_file():
+        data = self._load_bytes(document)
+        if not data:
             raise NotFoundError("File is missing from storage.")
+        self._remember_payload(document, data)
         response = FileResponse(
-            path.open("rb"),
+            BytesIO(data),
             as_attachment=not inline,
             filename=document.get("file_name") or "attachment",
             content_type=document.get("content_type") or "application/octet-stream",
@@ -204,6 +248,7 @@ class AttachmentService:
         with dest.open("wb") as handle:
             for chunk in upload.chunks():
                 handle.write(chunk)
+        payload = dest.read_bytes()
 
         document = stamp_new(
             {
@@ -213,6 +258,7 @@ class AttachmentService:
                 "file_name": file_name,
                 "content_type": content_type,
                 "storage_key": storage_key,
+                "payload": Binary(payload),
                 "notes": (notes or "").strip() or None,
                 "uploaded_by": parse_object_id(actor_id, field="uploaded_by"),
                 "created_at": utcnow(),
@@ -240,7 +286,6 @@ class AttachmentService:
             message=f"{presented['file_name']} was attached to {presented['entity_label'].lower()} {presented['entity_id']}.",
             related_entity_type=entity_type,
             related_entity_id=presented["entity_id"],
-            exclude_user_id=actor_id,
         )
         return saved
 

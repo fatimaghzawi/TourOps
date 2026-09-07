@@ -90,7 +90,7 @@ def _attach_galleries(tours: list[dict]) -> list[dict]:
     return tours
 
 
-def _gallery_room(tour_id=None) -> int:
+def _gallery_slots(tour_id=None) -> int:
     if not tour_id:
         return MAX_GALLERY_FILES
     existing = AttachmentService().gallery_for_tours([str(tour_id)]).get(str(tour_id), [])
@@ -102,12 +102,12 @@ def _save_gallery(request, tour_id) -> int:
     if not uploads:
         return 0
     existing = AttachmentService().gallery_for_tours([str(tour_id)]).get(str(tour_id), [])
-    room = max(MAX_GALLERY_FILES - len(existing), 0)
-    if room <= 0:
+    slots = max(MAX_GALLERY_FILES - len(existing), 0)
+    if slots <= 0:
         messages.error(request, f"This tour already has {MAX_GALLERY_FILES} gallery photos.")
         return 0
-    extra = uploads[room:]
-    uploads = uploads[:room]
+    extra = uploads[slots:]
+    uploads = uploads[:slots]
     if extra:
         messages.error(request, f"Only {MAX_GALLERY_FILES} gallery photos are kept. Extra files were skipped.")
     saved = 0
@@ -222,7 +222,7 @@ def tour_create(request):
                 else [line.get("supplier_service_id") for line in (selected_package or {}).get("services") or []]
             ),
             "override_services": request.POST.get("override_services") == "1" if request.method == "POST" else False,
-            "gallery_room": MAX_GALLERY_FILES,
+            "gallery_slots": MAX_GALLERY_FILES,
         },
     )
 
@@ -261,7 +261,7 @@ def tour_detail(request, id):
             ],
             "record": record,
             "tab": tab,
-            "gallery_room": _gallery_room(record["id"]),
+            "gallery_slots": _gallery_slots(record["id"]),
         },
     )
 
@@ -319,7 +319,7 @@ def tour_edit(request, id):
             ),
             "override_services": request.POST.get("override_services") == "1" if request.method == "POST" else False,
             "gallery": AttachmentService().gallery_for_tours([id]).get(id, []),
-            "gallery_room": _gallery_room(id),
+            "gallery_slots": _gallery_slots(id),
         },
     )
 

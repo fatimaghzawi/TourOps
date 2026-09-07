@@ -105,10 +105,18 @@ class FakeCollection:
                 return copy.deepcopy(document)
         return None
 
-    def find(self, query=None):
-        return FakeCursor(
-            [copy.deepcopy(document) for document in self.docs if self._matches(document, query or {})]
-        )
+    def find(self, query=None, projection=None):
+        rows = []
+        for document in self.docs:
+            if not self._matches(document, query or {}):
+                continue
+            copied = copy.deepcopy(document)
+            if isinstance(projection, dict):
+                for key, flag in projection.items():
+                    if flag == 0:
+                        copied.pop(key, None)
+            rows.append(copied)
+        return FakeCursor(rows)
 
     def create_index(self, keys, **options):
         if options.get("unique"):

@@ -284,7 +284,6 @@ class TourService:
             message=f"{document.get('name') or 'A departure'} is on the board for agents to sell.",
             related_entity_type="tours",
             related_entity_id=document["_id"],
-            exclude_user_id=actor_id,
         )
         return self.get(document["_id"])
 

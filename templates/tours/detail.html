@@ -100,10 +100,10 @@
         <a class="btn btn-ghost" href="{% url 'tours:edit' record.id %}">Edit tour</a>
         {% endif %}
     </div>
-    {% if nav.ops and gallery_room %}
+    {% if nav.ops and gallery_slots %}
     <form method="post" action="{% url 'tours:gallery_add' record.id %}" enctype="multipart/form-data" class="gallery-add">
         {% csrf_token %}
-        {% include "components/gallery_picker.html" with gallery_room=gallery_room picker_label="Add photos to this gallery" %}
+        {% include "components/gallery_picker.html" with gallery_slots=gallery_slots picker_label="Add photos to this gallery" %}
         <button class="btn btn-warm" type="submit">Upload photos</button>
     </form>
     {% endif %}
@@ -127,7 +127,7 @@
         {% endfor %}
     </div>
     {% else %}
-    {% if nav.ops and gallery_room %}
+    {% if nav.ops and gallery_slots %}
     <p class="muted">No photos yet. Upload several images below.</p>
     {% else %}
     {% url 'tours:edit' record.id as tour_edit_url %}

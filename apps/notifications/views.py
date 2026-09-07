@@ -4,46 +4,13 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from apps.notifications.constants import TYPE_CHOICES
-from apps.notifications.services import NotificationService
+from apps.notifications.services import NotificationService, notification_href
 from core.exceptions import DatabaseUnavailableError, TourOpsError
 from core.permissions import get_session_user, login_required
 
 
 def _target_url(item: dict) -> str:
-    kind = item.get("type") or item.get("kind")
-    entity_type = item.get("related_entity_type")
-    entity_id = item.get("related_entity_id")
-    if entity_type == "expenses" and entity_id:
-        return reverse("expenses:detail", args=[entity_id])
-    if entity_type == "supplier_payments" and entity_id:
-        return reverse("supplier_payments:detail", args=[entity_id])
-    if entity_type == "bookings" and entity_id:
-        return reverse("bookings:detail", args=[entity_id])
-    if entity_type == "tours" and entity_id:
-        return reverse("tours:detail", args=[entity_id])
-    if entity_type == "supplier_reservations" and entity_id:
-        return reverse("supplier_reservations:detail", args=[entity_id])
-    if entity_type == "invoices":
-        return reverse("invoices:list")
-    if entity_type == "payments":
-        return reverse("payments:list")
-    if entity_type == "refunds":
-        return reverse("refunds:list")
-    if entity_type == "attachments":
-        return reverse("attachments:list")
-    if kind == "refund":
-        return reverse("refunds:list")
-    if kind == "payment":
-        return reverse("payments:list")
-    if kind == "supplier":
-        return reverse("supplier_payments:list")
-    if kind == "expense":
-        return reverse("expenses:list")
-    if kind == "booking":
-        return reverse("bookings:list")
-    if kind == "tour":
-        return reverse("tours:list")
-    return reverse("notifications:list")
+    return notification_href(item)
 
 
 @login_required

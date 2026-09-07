@@ -390,4 +390,75 @@
             if (event.key === "Escape") closeBox();
         });
     })();
+
+    (function liveNotes() {
+        const host = document.querySelector("[data-notes-live]");
+        if (!host || !window.touropsFetch) return;
+        const countEl = host.querySelector("[data-notes-count]");
+        const headEl = host.querySelector("[data-notes-head]");
+        const listEl = host.querySelector("[data-notes-list]");
+        let lastUnread = countEl && !countEl.hidden ? parseInt(countEl.textContent || "0", 10) : 0;
+        if (!isFinite(lastUnread)) lastUnread = 0;
+        let primed = false;
+        const toast = document.getElementById("app-toast");
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function render(payload) {
+            const unread = payload.unread_count || 0;
+            const rows = payload.notifications || [];
+            if (countEl) {
+                countEl.hidden = unread < 1;
+                countEl.textContent = unread > 99 ? "99+" : String(unread);
+                countEl.setAttribute("aria-label", unread + " unread");
+            }
+            if (headEl) {
+                headEl.textContent = unread ? unread + " unread" : "You're up to date";
+            }
+            if (listEl) {
+                if (!rows.length) {
+                    listEl.innerHTML = '<p class="notes-empty">No notifications yet.</p>';
+                } else {
+                    listEl.innerHTML = rows.slice(0, 6).map(function (item) {
+                        const href = escapeHtml(item.open_href || item.href || "/notifications/");
+                        const unreadClass = item.unread ? " is-unread" : "";
+                        return (
+                            '<a class="notes-item' + unreadClass + '" href="' + href + '">' +
+                            '<span class="notes-item-dot" aria-hidden="true"></span>' +
+                            "<span><strong>" + escapeHtml(item.title) + "</strong>" +
+                            "<small>" + escapeHtml(item.body || item.message) + "</small></span></a>"
+                        );
+                    }).join("");
+                }
+            }
+            if (primed && unread > lastUnread && toast) {
+                toast.textContent = "New notification";
+                toast.classList.add("show");
+                setTimeout(function () { toast.classList.remove("show"); }, 3200);
+            }
+            primed = true;
+            lastUnread = unread;
+        }
+
+        function poll() {
+            window.touropsFetch("/api/notifications/")
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (body) {
+                    if (body && body.data) render(body.data);
+                })
+                .catch(function () { return null; });
+        }
+
+        poll();
+        setInterval(poll, 8000);
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) poll();
+        });
+    })();
 })();

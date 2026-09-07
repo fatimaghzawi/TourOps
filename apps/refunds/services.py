@@ -220,7 +220,6 @@ class RefundService:
             message=f"A refund of {presented.get('amount')} is waiting for approval.",
             related_entity_type="refunds",
             related_entity_id=doc["_id"],
-            exclude_user_id=requested_by,
         )
         return presented
 
@@ -325,5 +324,4 @@ class RefundService:
             message=f"Refund {presented.get('refund_number')} of {presented.get('amount')} was completed.",
             related_entity_type="refunds",
             related_entity_id=presented.get("id"),
-            exclude_user_id=actor_id,
         )
