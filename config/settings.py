@@ -205,6 +205,7 @@ DEMO_AGENT_EMAIL = os.getenv("DEMO_AGENT_EMAIL", "agent@tourops.local")
 DEMO_AGENT_PASSWORD = os.getenv("DEMO_AGENT_PASSWORD", "changeme")
 DEMO_ACCOUNTANT_EMAIL = os.getenv("DEMO_ACCOUNTANT_EMAIL", "accountant@tourops.local")
 DEMO_ACCOUNTANT_PASSWORD = os.getenv("DEMO_ACCOUNTANT_PASSWORD", "changeme")
+SEED_DEMO_USER = _env_bool("SEED_DEMO_USER", "false")
 
 LOGGING = {
     "version": 1,

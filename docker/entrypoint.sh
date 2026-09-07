@@ -32,6 +32,7 @@ PY
 run_as_app python manage.py migrate --noinput
 run_as_app python manage.py collectstatic --noinput
 run_as_app python manage.py ensure_indexes
+run_as_app python manage.py seed_demo_user
 
 workers="${GUNICORN_WORKERS:-3}"
 exec gosu appuser gunicorn config.wsgi:application \

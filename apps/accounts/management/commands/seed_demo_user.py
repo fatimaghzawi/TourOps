@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+import logging
+import sys
+
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 
 from apps.accounts.models import User
 from core.constants import UserRole
@@ -12,12 +18,27 @@ STAFF = (
 )
 
 
+def ensure_demo_staff_quietly() -> None:
+    if "pytest" in sys.modules:
+        return
+    try:
+        from django.core.management import call_command
+
+        call_command("seed_demo_user")
+    except Exception:
+        logging.getLogger(__name__).exception("Could not seed demo staff.")
+
+
 class Command(BaseCommand):
-    help = "Seed demo staff users (owner, agent, accountant) for local development."
+    help = "Seed demo staff users (owner, agent, accountant) into Django auth."
 
     def handle(self, *args, **options):
-        if not settings.DEBUG:
-            raise CommandError("Refusing to seed demo staff when DEBUG is False.")
+        bootstrap = not User.objects.exists()
+        if not settings.DEBUG and not settings.SEED_DEMO_USER and not bootstrap:
+            self.stdout.write("Skipping demo staff seed (DEBUG is False).")
+            return
+
+        reset_passwords = bool(settings.SEED_DEMO_USER)
         created = 0
         for email, password, first_name, last_name, role in STAFF:
             email = email.strip().lower()
@@ -36,20 +57,27 @@ class Command(BaseCommand):
                 if not existing.is_active:
                     existing.is_active = True
                     changed = True
+                if reset_passwords:
+                    existing.set_password(password)
+                    changed = True
                 if changed:
                     existing.save()
                     self.stdout.write(self.style.SUCCESS(f"Updated {email} ({first_name} {last_name})"))
                 else:
                     self.stdout.write(self.style.WARNING(f"User already exists: {email}"))
                 continue
-            User.objects.create_user(
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                role=role.value,
-                is_active=True,
-            )
+            try:
+                User.objects.create_user(
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    role=role.value,
+                    is_active=True,
+                )
+            except IntegrityError:
+                self.stdout.write(self.style.WARNING(f"User already exists: {email}"))
+                continue
             created += 1
             self.stdout.write(self.style.SUCCESS(f"Created {email} / {password} ({role.value})"))
 

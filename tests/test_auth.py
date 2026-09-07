@@ -355,17 +355,38 @@ def test_deactivated_user_is_logged_out(client, db):
     assert reverse("accounts:login") in blocked["Location"]
 
 
-def test_seed_demo_user_refuses_when_debug_is_false(settings, db):
+def test_seed_demo_user_bootstraps_empty_database_when_debug_is_false(settings, db):
     from django.core.management import call_command
-    from django.core.management.base import CommandError
 
     settings.DEBUG = False
-    try:
-        call_command("seed_demo_user")
-    except CommandError as extra:
-        assert "DEBUG" in str(extra)
-    else:
-        raise AssertionError("expected CommandError")
+    settings.SEED_DEMO_USER = False
+    call_command("seed_demo_user")
+    assert User.objects.filter(email="owner@tourops.local").exists()
+    assert User.objects.filter(email="agent@tourops.local").exists()
+    assert User.objects.filter(email="accountant@tourops.local").exists()
+    owner = User.objects.get(email="owner@tourops.local")
+    assert owner.check_password("changeme")
+
+
+def test_seed_demo_user_skips_when_debug_off_and_staff_exist(settings, db):
+    from django.core.management import call_command
+
+    settings.DEBUG = False
+    settings.SEED_DEMO_USER = False
+    _create_user(email="keep@tourops.local")
+    call_command("seed_demo_user")
+    assert not User.objects.filter(email="owner@tourops.local").exists()
+
+
+def test_seed_demo_user_resets_passwords_when_flag_set(settings, db):
+    from django.core.management import call_command
+
+    settings.DEBUG = False
+    settings.SEED_DEMO_USER = True
+    _create_user(email="owner@tourops.local", password="old-password1")
+    call_command("seed_demo_user")
+    owner = User.objects.get(email="owner@tourops.local")
+    assert owner.check_password("changeme")
 
 
 def test_login_locks_after_repeated_failures(db):
